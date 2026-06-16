@@ -12,6 +12,10 @@
 		"package:linux": "npm run build && electron-builder --linux",
 		"package:mac": "npm run build && electron-builder --mac"
 	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/cavalinho-xdd/focus.git"
+	},
 	"build": {
 		"appId": "com.focus.app",
 		"productName": "Focus",
@@ -44,6 +48,9 @@
 			"allowToChangeInstallationDirectory": true
 		},
 		"asar": false,
+		"publish": {
+			"provider": "github"
+		},
 		"files": [
 			"dist/**/*",
 			"main/**/*",
