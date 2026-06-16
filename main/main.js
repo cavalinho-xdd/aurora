@@ -55,31 +55,7 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  createWindow();
-
-  // Nastavení Tray ikony
-  tray = new Tray(path.join(__dirname, '../build/icon.png'));
-  const contextMenu = Menu.buildFromTemplate([
-    { label: 'Otevřít Focus', click: () => mainWindow.show() },
-    { type: 'separator' },
-    { 
-      label: 'Ukončit', 
-      click: () => {
-        if (!isHardcoreMode) {
-          isQuitting = true;
-          app.quit();
-        }
-      } 
-    }
-  ]);
-  tray.setToolTip('Focus App');
-  tray.setContextMenu(contextMenu);
-  
-  tray.on('click', () => {
-    mainWindow.show();
-  });
-
-  // IPC handlers
+  // IPC handlers - MUST be registered before createWindow
   ipcMain.on('blocker:start', (event, { blacklist, hardcore }) => {
     isHardcoreMode = hardcore || false;
     startBlocker(blacklist);
@@ -113,6 +89,35 @@ app.whenReady().then(() => {
   ipcMain.on('shell:openExternal', (event, { url }) => {
     shell.openExternal(url);
   });
+
+  createWindow();
+
+  // Nastavení Tray ikony
+  try {
+    tray = new Tray(path.join(__dirname, 'icon.png'));
+  const contextMenu = Menu.buildFromTemplate([
+    { label: 'Otevřít Focus', click: () => mainWindow.show() },
+    { type: 'separator' },
+    { 
+      label: 'Ukončit', 
+      click: () => {
+        if (!isHardcoreMode) {
+          isQuitting = true;
+          app.quit();
+        }
+      } 
+    }
+  ]);
+  tray.setToolTip('Focus App');
+  tray.setContextMenu(contextMenu);
+  
+  tray.on('click', () => {
+    mainWindow.show();
+  });
+
+  } catch (err) {
+    console.error("Failed to create tray:", err);
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
