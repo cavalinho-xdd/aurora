@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*' # Spustí se POUZE když tag začíná na "v" (např. v1.0.0)
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ${{ matrix.os }}
