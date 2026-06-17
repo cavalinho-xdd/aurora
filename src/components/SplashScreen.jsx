@@ -73,7 +73,7 @@ function SplashScreen({ onComplete }) {
             >
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] shadow-[0_0_30px_rgba(139,92,246,0.6)]"></div>
               <h1 className="text-8xl font-black tracking-tighter text-white drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">
-                focus
+                aurora
               </h1>
             </motion.div>
 
@@ -84,7 +84,7 @@ function SplashScreen({ onComplete }) {
               transition={{ duration: 1.2, delay: 1.2, ease: 'easeOut' }}
               className="text-white text-2xl mt-8 italic tracking-wider font-light"
             >
-              Where attention goes, energy flows
+              "Light up your mind."
             </motion.p>
           </div>
         </motion.div>

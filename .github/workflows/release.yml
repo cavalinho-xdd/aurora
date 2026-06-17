@@ -16,7 +16,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           draft: true
-          name: Focus App ${{ github.ref_name }}
+          name: Aurora ${{ github.ref_name }}
           generate_release_notes: true
 
   release:

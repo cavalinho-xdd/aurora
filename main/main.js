@@ -96,7 +96,7 @@ app.whenReady().then(() => {
   try {
     tray = new Tray(path.join(__dirname, 'icon.png'));
   const contextMenu = Menu.buildFromTemplate([
-    { label: 'Otevřít Focus', click: () => mainWindow.show() },
+    { label: 'Otevřít Aurora', click: () => mainWindow.show() },
     { type: 'separator' },
     { 
       label: 'Ukončit', 
@@ -108,7 +108,7 @@ app.whenReady().then(() => {
       } 
     }
   ]);
-  tray.setToolTip('Focus App');
+  tray.setToolTip('Aurora');
   tray.setContextMenu(contextMenu);
   
   tray.on('click', () => {

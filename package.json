@@ -1,7 +1,7 @@
 {
-	"name": "focus",
+	"name": "aurora",
 	"version": "1.0.6",
-	"description": "A gamified Pomodoro focus app with AI evaluation.",
+	"description": "A gamified Pomodoro app with AI evaluation.",
 	"main": "main/main.js",
 	"scripts": {
 		"dev": "vite",
@@ -17,8 +17,8 @@
 		"url": "https://github.com/cavalinho-xdd/focus.git"
 	},
 	"build": {
-		"appId": "com.focus.app",
-		"productName": "Focus",
+		"appId": "com.aurora.app",
+		"productName": "Aurora",
 		"directories": {
 			"output": "release"
 		},

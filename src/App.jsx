@@ -337,7 +337,7 @@ function App() {
             {/* Logo */}
             <div className="flex items-center gap-3 mb-12 px-3">
               <div className="w-3 h-3 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-[0_0_12px_rgba(139,92,246,0.6)]"></div>
-              <span className="text-xl font-bold tracking-tight text-white">focus</span>
+              <span className="text-xl font-bold tracking-tight text-white">aurora</span>
             </div>
 
             {/* Nav Items */}

@@ -25,11 +25,11 @@ const resources = {
         "streak": "Streak"
       },
       "goalPlanner": {
-        "title": "Start a Focus Session",
+        "title": "Light up your mind",
         "quizTopic": "Topic for AI evaluation quiz",
         "topicPlaceholder": "e.g. Web App Architecture, Photosynthesis...",
         "timeInMinutes": "Time in minutes",
-        "startFocus": "Start Focus",
+        "startFocus": "Start Aurora",
         "missingApi": "Missing Gemini API key in Settings. The evaluation quiz won't work without it.",
         "hardcoreMode": "Hardcore Mode (Anti-Cheat)",
         "hardcoreWarningTitle": "Warning: Hardcore Mode",
@@ -47,7 +47,7 @@ const resources = {
       "timerScreen": {
         "focusingOn": "Focusing on",
         "timeRemaining": "Time Remaining",
-        "cancelFocus": "Cancel Focus Block",
+        "cancelFocus": "Cancel Aurora Block",
         "breakActive": "Break Time! Relax.",
         "phaseFocus": "FOCUS PHASE",
         "phaseBreak": "BREAK PHASE",
@@ -77,7 +77,7 @@ const resources = {
         "saved": "Saved!",
         "keyDisclaimer": "The key remains securely on your device (userdata.json). It is not sent anywhere else (except Google API).",
         "blacklistLabel": "Blacklist (Blocked Applications)",
-        "blacklistDisclaimer": "Process names that will be terminated during Focus. One process per line.",
+        "blacklistDisclaimer": "Process names that will be terminated during Aurora. One process per line.",
         "scanApps": "Scan Running Apps",
         "scanning": "Scanning...",
         "scanTitle": "Running Processes",
@@ -138,7 +138,7 @@ const resources = {
         "forgotPassword": "Forgot password?",
         "resetLinkSent": "Password reset link sent! Check your inbox.",
         "verifyEmailTitle": "Verify your email",
-        "verifyEmailDesc": "We've sent a verification link to your email. You must click it before you can start using Focus.",
+        "verifyEmailDesc": "We've sent a verification link to your email. You must click it before you can start using Aurora.",
         "resendEmail": "Resend verification email",
         "refreshStatus": "I've verified my email",
         "emailResent": "Verification email resent!"
@@ -187,11 +187,11 @@ const resources = {
         "streak": "Série"
       },
       "goalPlanner": {
-        "title": "Začít Focus Blok",
+        "title": "Light up your mind.",
         "quizTopic": "Téma pro kontrolní AI kvíz",
         "topicPlaceholder": "např. Architektura webovek, Fotosyntéza...",
         "timeInMinutes": "Čas v minutách",
-        "startFocus": "Spustit Focus",
+        "startFocus": "Spustit Auroru",
         "missingApi": "Chybí Gemini API klíč v Nastavení. Vyhodnocovací kvíz bez něj nebude fungovat.",
         "hardcoreMode": "Hardcore Mód (Anti-Cheat)",
         "hardcoreWarningTitle": "Varování: Hardcore Mód",
@@ -204,10 +204,10 @@ const resources = {
         "cancel": "Zrušit"
       },
       "timerScreen": {
-        "focus": "Focus",
+        "focus": "Aurora",
         "focusTopic": "Soustředění: {{topic}}",
-        "cancelFocus": "Přerušit Focus",
-        "finishFocus": "Dokončit Focus",
+        "cancelFocus": "Přerušit Auroru",
+        "finishFocus": "Dokončit Auroru",
         "finished": "Ukončeno!"
       },
       "quizScreen": {
@@ -234,7 +234,7 @@ const resources = {
         "saved": "Uloženo!",
         "keyDisclaimer": "Klíč zůstává bezpečně ve tvém zařízení (userdata.json). Není nikam odesílán (kromě Google API).",
         "blacklistLabel": "Blacklist (Zakázané aplikace)",
-        "blacklistDisclaimer": "Názvy procesů, které budou během Focusu ukončeny. Jeden proces na řádek.",
+        "blacklistDisclaimer": "Názvy procesů, které budou během bloku ukončeny. Jeden proces na řádek.",
         "scanApps": "Skenovat běžící aplikace",
         "scanning": "Skenuji...",
         "scanTitle": "Běžící procesy",
