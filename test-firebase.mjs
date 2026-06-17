@@ -3,12 +3,13 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { getFirestore, doc, updateDoc, arrayUnion } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCV57Wc-9sZBAvcX_6RxmMPrqDRf1HMtLg",
-  authDomain: "focus-15019.firebaseapp.com",
-  projectId: "focus-15019",
-  storageBucket: "focus-15019.firebasestorage.app",
-  messagingSenderId: "141757061603",
-  appId: "1:141757061603:web:aea2c354fe6b5e945828d6"
+  apiKey: "AIzaSyAtGuJ10S0dzXgD0BCXI8EQOSpS63OXnvQ",
+  authDomain: "stay-aurora.firebaseapp.com",
+  projectId: "stay-aurora",
+  storageBucket: "stay-aurora.firebasestorage.app",
+  messagingSenderId: "135860160624",
+  appId: "1:135860160624:web:e378cac1bdc2c99299ccb5",
+  measurementId: "G-0QEHSFY5S2"
 };
 
 const app = initializeApp(firebaseConfig);
