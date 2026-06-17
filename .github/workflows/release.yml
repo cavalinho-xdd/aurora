@@ -3,7 +3,7 @@ name: Build & Release
 on:
   push:
     tags:
-      - 'v*' # Spustí se POUZE když tag začíná na "v" (např. v1.0.0)
+      - 'v*'
 
 permissions:
   contents: write
