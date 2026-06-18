@@ -1,6 +1,6 @@
 {
 	"name": "aurora",
-	"version": "1.0.10-alpha.4",
+	"version": "1.0.5-alpha",
 	"description": "A gamified Pomodoro app with AI evaluation.",
 	"main": "main/main.js",
 	"scripts": {
@@ -8,6 +8,7 @@
 		"build": "vite build",
 		"start": "electron .",
 		"start:dev": "node scripts/dev.js",
+		"start:build": "node scripts/build.js",
 		"package:win": "npm run build && electron-builder --win",
 		"package:linux": "npm run build && electron-builder --linux",
 		"package:mac": "npm run build && electron-builder --mac"
@@ -55,7 +56,7 @@
 			"oneClick": false,
 			"allowToChangeInstallationDirectory": true
 		},
-		"asar": false,
+		"asar": true,
 		"publish": {
 			"provider": "github"
 		},
@@ -88,7 +89,9 @@
 		"framer-motion": "^12.40.0",
 		"i18next": "^26.3.1",
 		"lucide-react": "^1.18.0",
+		"mammoth": "^1.12.0",
 		"ogl": "^1.0.11",
+		"pdf-parse": "^2.4.5",
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
 		"react-i18next": "^17.0.8"

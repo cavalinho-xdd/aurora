@@ -5,11 +5,15 @@
  * evaluation of user responses to determine XP progression.
  */
 
-async function generateQuestions(topic, apiKey, lang = 'en') {
+async function generateQuestions(topic, apiKey, lang = 'en', documentText = '') {
   if (!apiKey) return { error: 'Missing Gemini API key.' };
   
   const langText = lang === 'cs' ? 'Czech' : 'English';
-  const prompt = `You are a teacher. Generate exactly 3 questions in ${langText} that test knowledge about: "${topic}". Reply ONLY in JSON format matching this schema without markdown blocks: [{"id": 1, "question": "Question?", "hint": "Key concepts or expected direction"}]`;
+  let prompt = `You are a teacher. Generate exactly 3 questions in ${langText} that test knowledge about: "${topic}". Reply ONLY in JSON format matching this schema without markdown blocks: [{"id": 1, "question": "Question?", "hint": "Key concepts or expected direction"}]`;
+  
+  if (documentText) {
+    prompt += `\n\nHere is the provided study material. Base your questions primarily on this document:\n\n${documentText}`;
+  }
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {

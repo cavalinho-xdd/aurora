@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { XSquare, Shield } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
+import { playPhaseChange, playTimerEnd } from '../utils/soundService';
 
 function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 25, pomodoroBreak = 5, onComplete, onAbort, onPhaseChange }) {
   const { t } = useTranslation();
@@ -12,12 +13,25 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
   
   const [phase, setPhase] = useState('FOCUS');
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(usePomodoro ? Math.min(POMODORO_FOCUS_SEC, minutes * 60) : minutes * 60);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  useEffect(() => {
+    if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          playTimerEnd();
+          if (Notification.permission === "granted") {
+            new Notification(t('timerScreen.focusCompleteTitle', 'Focus Complete!'), {
+              body: t('timerScreen.focusCompleteBody', 'Time to evaluate your knowledge.'),
+            });
+          }
           onComplete();
           return 0;
         }
@@ -30,6 +44,16 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
             setPhase((currentPhase) => {
               const newPhase = currentPhase === 'FOCUS' ? 'BREAK' : 'FOCUS';
               if (onPhaseChange) onPhaseChange(newPhase);
+              
+              if (timeLeft > 1) {
+                playPhaseChange();
+                if (Notification.permission === "granted") {
+                  const title = newPhase === 'BREAK' ? t('timerScreen.breakTimeTitle', 'Take a Break') : t('timerScreen.focusTimeTitle', 'Back to Focus');
+                  const body = newPhase === 'BREAK' ? t('timerScreen.breakTimeBody', 'Great job! Rest for a few minutes.') : t('timerScreen.focusTimeBody', 'Time to lock in.');
+                  new Notification(title, { body });
+                }
+              }
+
               return newPhase;
             });
             return 0; 
@@ -39,7 +63,7 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
       }
     }, 1000);
     return () => clearInterval(timer);
-  }, [onComplete, usePomodoro, onPhaseChange]);
+  }, [onComplete, usePomodoro, onPhaseChange, t, timeLeft]);
 
   useEffect(() => {
     if (usePomodoro && phaseTimeLeft === 0 && timeLeft > 0) {
@@ -122,12 +146,34 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
           </div>
         )}
         {!isHardcore && (
-          <button 
-            className="text-gray-600 hover:text-gray-400 text-sm flex items-center gap-2 transition-colors" 
-            onClick={onAbort}
-          >
-            <XSquare size={16} /> {t('timerScreen.cancelFocus')}
-          </button>
+          <div className="flex flex-col items-center">
+            {showConfirm ? (
+              <div className="flex flex-col items-center gap-2 animate-in fade-in zoom-in duration-200">
+                <p className="text-red-400 text-sm">{t('timerScreen.giveUpConfirm', 'Are you sure you want to give up?')}</p>
+                <div className="flex gap-4 mt-2">
+                  <button 
+                    className="text-gray-400 hover:text-white text-sm px-4 py-1 rounded border border-gray-600 hover:border-gray-400 transition-colors" 
+                    onClick={() => setShowConfirm(false)}
+                  >
+                    {t('timerScreen.cancelGiveUp', 'No, keep going')}
+                  </button>
+                  <button 
+                    className="text-red-500 hover:bg-red-500/10 text-sm px-4 py-1 rounded transition-colors" 
+                    onClick={onAbort}
+                  >
+                    {t('timerScreen.confirmGiveUp', 'Yes, give up')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button 
+                className="text-gray-600 hover:text-gray-400 text-sm flex items-center gap-2 transition-colors" 
+                onClick={() => setShowConfirm(true)}
+              >
+                <XSquare size={16} /> {t('timerScreen.cancelFocus')}
+              </button>
+            )}
+          </div>
         )}
       </div>
     </div>

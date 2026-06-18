@@ -18,7 +18,8 @@ const resources = {
         "community": "Community",
         "settings": "Settings",
         "logout": "Log out",
-        "level": "Lvl"
+        "level": "Lvl",
+        "tasks": "Tasks"
       },
       "dashboard": {
         "title": "Your Stats",
@@ -31,7 +32,7 @@ const resources = {
         "streak": "Streak"
       },
       "goalPlanner": {
-        "title": "Light up your mind",
+        "title": "Quick Start",
         "quizTopic": "Topic for AI evaluation quiz",
         "topicPlaceholder": "e.g. Web App Architecture, Photosynthesis...",
         "timeInMinutes": "Time in minutes",
@@ -57,7 +58,13 @@ const resources = {
         "breakActive": "Break Time! Relax.",
         "phaseFocus": "FOCUS PHASE",
         "phaseBreak": "BREAK PHASE",
-        "finished": "Finished!"
+        "finished": "Finished!",
+        "focusCompleteTitle": "Focus Complete!",
+        "focusCompleteBody": "Time to evaluate your knowledge.",
+        "breakTimeTitle": "Take a Break",
+        "breakTimeBody": "Great job! Rest for a few minutes.",
+        "focusTimeTitle": "Back to Focus",
+        "focusTimeBody": "Time to lock in."
       },
       "quizScreen": {
         "notAvailable": "Quiz not available",
@@ -186,6 +193,17 @@ const resources = {
           "updaterErrorTitle": "Update Failed",
           "updaterErrorDesc": "We couldn't install the update. We'll try again later."
         }
+      },
+      "backlog": {
+        "title": "Focus Backlog",
+        "subtitle": "Plan your focus sessions ahead of time.",
+        "addTask": "Add Task",
+        "noTasks": "No pending tasks. You're all caught up!",
+        "newTaskTitle": "New Task",
+        "taskName": "Task name (e.g. Read Chapter 4)",
+        "duration": "Duration (minutes)",
+        "cancel": "Cancel",
+        "save": "Save Task"
       }
     }
   },
@@ -199,7 +217,8 @@ const resources = {
         "community": "Komunita",
         "settings": "Nastavení",
         "logout": "Odhlásit se",
-        "level": "Lvl"
+        "level": "Lvl",
+        "tasks": "Úkoly"
       },
       "dashboard": {
         "title": "Tvoje Statistiky",
@@ -212,7 +231,7 @@ const resources = {
         "streak": "Série"
       },
       "goalPlanner": {
-        "title": "Light up your mind.",
+        "title": "Rychlý start",
         "quizTopic": "Téma pro kontrolní AI kvíz",
         "topicPlaceholder": "např. Architektura webovek, Fotosyntéza...",
         "timeInMinutes": "Čas v minutách",
@@ -233,7 +252,13 @@ const resources = {
         "focusTopic": "Soustředění: {{topic}}",
         "cancelFocus": "Přerušit Auroru",
         "finishFocus": "Dokončit Auroru",
-        "finished": "Ukončeno!"
+        "finished": "Ukončeno!",
+        "focusCompleteTitle": "Blok dokončen!",
+        "focusCompleteBody": "Je čas vyhodnotit tvoje znalosti.",
+        "breakTimeTitle": "Čas na pauzu",
+        "breakTimeBody": "Skvělá práce! Odpočiň si na pár minut.",
+        "focusTimeTitle": "Zpět k práci",
+        "focusTimeBody": "Čas se soustředit."
       },
       "quizScreen": {
         "notAvailable": "Kvíz není k dispozici",
@@ -365,6 +390,17 @@ const resources = {
           "updaterErrorTitle": "Aktualizace selhala",
           "updaterErrorDesc": "Nepodařilo se nainstalovat aktualizaci. Zkusíme to znovu později."
         }
+      },
+      "backlog": {
+        "title": "Zásobník úkolů",
+        "subtitle": "Naplánuj si úkoly dopředu.",
+        "addTask": "Přidat úkol",
+        "noTasks": "Žádné úkoly. Máš splněno!",
+        "newTaskTitle": "Nový úkol",
+        "taskName": "Název úkolu (např. Přečíst kapitolu 4)",
+        "duration": "Délka (minuty)",
+        "cancel": "Zrušit",
+        "save": "Uložit úkol"
       }
     }
   }

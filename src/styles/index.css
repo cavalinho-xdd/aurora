@@ -7,6 +7,22 @@
   --color-focus-accent: #0EA5E9;
   
   --font-sans: 'Poppins', sans-serif;
+
+  --shadow-glow-primary: 0 0 30px rgba(139, 92, 246, 0.3);
+  --shadow-glow-primary-sm: 0 0 15px rgba(139, 92, 246, 0.3);
+  --shadow-glow-primary-lg: 0 0 50px rgba(139, 92, 246, 0.4);
+  --shadow-glow-secondary: 0 0 30px rgba(236, 72, 153, 0.3);
+  --shadow-glow-secondary-sm: 0 0 15px rgba(236, 72, 153, 0.3);
+  --shadow-glow-red: 0 0 20px rgba(239, 68, 68, 0.3);
+  --shadow-glow-red-sm: 0 0 15px rgba(239, 68, 68, 0.5);
+  --shadow-glow-orange: 0 0 20px rgba(249, 115, 22, 0.3);
+  --shadow-glow-orange-sm: 0 0 15px rgba(249, 115, 22, 0.3);
+  --shadow-glow-white: 0 0 20px rgba(255, 255, 255, 0.2);
+
+  --drop-shadow-glow-primary: 0 0 30px rgba(139, 92, 246, 0.6);
+  --drop-shadow-glow-secondary: 0 0 20px rgba(236, 72, 153, 0.4);
+
+  --ease-ui-out: cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 @layer base {

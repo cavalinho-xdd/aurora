@@ -17,7 +17,7 @@ function QuizScreen({ quizData, apiKey, onSubmit }) {
         <motion.button 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="px-8 py-3 rounded-full bg-white/10 border border-white/15 text-white font-medium hover:bg-white/15 transition-all" 
+          className="px-8 py-3 rounded-full bg-white/10 border border-white/15 text-white font-medium hover:bg-white/15 transition-colors duration-150 ease-ui-out active:scale-95" 
           onClick={() => onSubmit(0, t('quizScreen.notAvailable'))}
         >
           {t('quizScreen.continue')}
@@ -64,7 +64,7 @@ function QuizScreen({ quizData, apiKey, onSubmit }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
-        <CheckCircle2 size={56} className="text-focus-secondary mb-8 drop-shadow-[0_0_20px_rgba(236,72,153,0.4)]" />
+        <CheckCircle2 size={56} className="text-focus-secondary mb-8 drop-shadow-glow-secondary" />
         <h2 className="text-2xl font-bold text-white mb-8">{t('quizScreen.evaluation')}</h2>
         <div className="text-8xl font-black text-white tracking-tighter mb-2 leading-none">
           {evaluationResult.score}
@@ -76,7 +76,7 @@ function QuizScreen({ quizData, apiKey, onSubmit }) {
         <motion.button 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-shadow" 
+          className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-glow-primary hover:shadow-glow-primary-lg transition-shadow" 
           onClick={() => onSubmit(evaluationResult.score, evaluationResult.feedback)}
         >
           {t('quizScreen.claimXp')}
@@ -126,7 +126,7 @@ function QuizScreen({ quizData, apiKey, onSubmit }) {
       <motion.button 
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-shadow flex items-center gap-3 self-start disabled:opacity-50 disabled:hover:shadow-none" 
+        className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full shadow-glow-primary hover:shadow-glow-primary-lg transition-shadow flex items-center gap-3 self-start disabled:opacity-50 disabled:hover:shadow-none" 
         onClick={handleSubmit} 
         disabled={isEvaluating}
       >

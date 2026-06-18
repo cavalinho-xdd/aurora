@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { db, auth } from '../firebase';
 import { collection, query, orderBy, limit, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, where } from 'firebase/firestore';
-import { Trophy, Users, Search, Plus, X, Clock, Flame, Target } from 'lucide-react';
+import { Trophy, Users, Search, Plus, X, Clock, Flame, Target, BadgeCheck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -85,7 +85,7 @@ function SocialScreen() {
     setLoading(true);
     setFriendStatus(null);
     try {
-      const q = query(collection(db, "users"), where("displayName", "==", searchName));
+      const q = query(collection(db, "users"), where("displayNameLower", "==", searchName.trim().toLowerCase()));
       const snap = await getDocs(q);
       
       if (!snap.empty) {
@@ -149,7 +149,7 @@ function SocialScreen() {
       {data.map((user, i) => (
         <div key={user.id} className="relative group border-b border-white/5 last:border-0">
           {/* Beautiful detached hover pill inside the row */}
-          <div className="absolute inset-1 bg-white/[0.06] rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none scale-[0.98] group-hover:scale-100 shadow-[0_4px_20px_rgba(0,0,0,0.1)]" />
+          <div className="absolute inset-1 bg-white/[0.06] rounded-2xl opacity-0 group-hover:opacity-100 transition duration-200 ease-ui-out pointer-events-none scale-[0.98] group-hover:scale-100 shadow-lg" />
           
           {/* Row Content */}
           <div 
@@ -158,16 +158,21 @@ function SocialScreen() {
           >
             <div className="flex items-center gap-5">
               <span className={`w-6 text-center text-sm font-bold ${i < 3 ? 'text-focus-secondary' : 'text-gray-600'}`}>{i + 1}</span>
-              <span className={`font-medium ${user.id === auth.currentUser.uid ? 'text-white' : 'text-gray-400'}`}>
-                {user.displayName || t('socialScreen.anonymous')}
-                {user.id === auth.currentUser.uid && <span className="text-gray-600 text-xs ml-2">{t('socialScreen.you')}</span>}
-              </span>
+              <div className={`flex items-center gap-2 font-medium ${user.id === auth.currentUser.uid ? 'text-white' : 'text-gray-400'}`}>
+                <span>{user.displayName || t('socialScreen.anonymous')}</span>
+                {(user.role === 'dev' || user.role === 'admin') && (
+                  <div className="flex items-center gap-1 text-[10px] uppercase font-black tracking-wider text-white bg-gradient-to-r from-focus-primary to-focus-secondary px-2 py-0.5 rounded-md shadow-glow-primary-sm" title="Aurora Developer">
+                    <BadgeCheck size={12} /> DEV
+                  </div>
+                )}
+                {user.id === auth.currentUser.uid && <span className="text-gray-600 text-xs ml-1">{t('socialScreen.you')}</span>}
+              </div>
             </div>
             <div className="text-right flex items-center gap-6">
 
             {user.streak > 0 && (
               <div className="flex items-center gap-1.5 opacity-80" title={`${user.streak} day streak`}>
-                <svg width="14" height="16" viewBox="0 0 100 100" className="drop-shadow-[0_0_4px_rgba(139,92,246,0.5)]">
+                <svg width="14" height="16" viewBox="0 0 100 100" className="drop-shadow-md">
                   <path d="M50 10 C50 10 20 45 20 70 A30 30 0 0 0 80 70 C80 45 50 10 50 10 Z" fill="#8B5CF6" />
                   <path d="M50 35 C50 35 35 55 35 70 A15 15 0 0 0 65 70 C65 55 50 35 50 35 Z" fill="#F472B6" />
                 </svg>
@@ -233,7 +238,7 @@ function SocialScreen() {
         ].map(item => (
           <button 
             key={item.id}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all border ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors duration-150 ease-ui-out active:scale-95 border ${
               tab === item.id 
                 ? 'bg-white/10 text-white border-white/15' 
                 : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'
@@ -278,7 +283,7 @@ function SocialScreen() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }} 
                       animate={{ opacity: 1, y: 0, scale: 1 }} 
                       exit={{ opacity: 0, scale: 0.95 }} 
-                      className="absolute -top-12 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10 whitespace-nowrap"
+                      className="absolute -top-12 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10 whitespace-nowrap"
                     >
                       <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
                       <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
@@ -316,7 +321,7 @@ function SocialScreen() {
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-focus-primary text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-[0_0_20px_rgba(139,92,246,0.2)]" 
+                  className="bg-focus-primary text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-glow-primary" 
                   onClick={() => handleAddFriend(searchResult.id)}
                 >
                   <Plus size={14} /> {t('socialScreen.add')}
@@ -353,12 +358,19 @@ function SocialScreen() {
               </button>
 
               <div className="flex flex-col items-center mt-4">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary flex items-center justify-center shadow-[0_0_30px_rgba(139,92,246,0.3)] mb-4">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary flex items-center justify-center shadow-glow-primary mb-4">
                   <span className="text-3xl font-black text-white">
                     {(selectedUser.displayName || 'A').charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <h3 className="text-2xl font-black text-white">{selectedUser.displayName || t('socialScreen.anonymous')}</h3>
+                <h3 className="text-2xl font-black text-white flex items-center gap-3">
+                  {selectedUser.displayName || t('socialScreen.anonymous')}
+                  {(selectedUser.role === 'dev' || selectedUser.role === 'admin') && (
+                    <div className="flex items-center gap-1 text-xs uppercase font-black tracking-wider text-white bg-gradient-to-r from-focus-primary to-focus-secondary px-2.5 py-1 rounded-lg shadow-glow-primary-sm" title="Aurora Developer">
+                      <BadgeCheck size={14} /> DEV
+                    </div>
+                  )}
+                </h3>
                 {selectedUser.id === auth.currentUser?.uid && (
                   <span className="bg-white/10 text-gray-300 text-xs px-2 py-0.5 rounded-full mt-2 uppercase tracking-widest">{t('socialScreen.you')}</span>
                 )}

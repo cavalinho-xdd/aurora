@@ -145,7 +145,7 @@ function AuthScreen() {
     >
       {/* Branding */}
       <div className="flex items-center gap-3 mb-12">
-        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
+        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-glow-primary-sm" />
         <span className="text-2xl font-bold tracking-tight">aurora</span>
       </div>
 
@@ -181,7 +181,7 @@ function AuthScreen() {
                 className={`w-full bg-white/5 border ${fieldErrors.displayName ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
               />
               {fieldErrors.displayName && (
-                <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10">
+                <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10">
                   <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
                   <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
                 </div>
@@ -199,7 +199,7 @@ function AuthScreen() {
               className={`w-full bg-white/5 border ${fieldErrors.email ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
             />
             {fieldErrors.email && (
-              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10">
+              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10">
                 <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
                 <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
               </div>
@@ -216,7 +216,7 @@ function AuthScreen() {
               className={`w-full bg-white/5 border ${fieldErrors.password ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
             />
             {fieldErrors.password && (
-              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-1.5 z-10">
+              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10">
                 <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
                 <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
               </div>
@@ -241,10 +241,10 @@ function AuthScreen() {
           type="submit" disabled={loading || isOffline}
           whileHover={!isOffline ? { scale: 1.02 } : {}}
           whileTap={!isOffline ? { scale: 0.98 } : {}}
-          className={`mt-4 text-white font-bold py-4 px-6 rounded-full transition-all flex justify-center items-center gap-2 ${
+          className={`mt-4 text-white font-bold py-4 px-6 rounded-full transition-colors duration-150 ease-ui-out active:scale-95 flex justify-center items-center gap-2 ${
             isOffline 
               ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-              : 'bg-focus-primary shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] disabled:opacity-50 disabled:hover:shadow-none'
+              : 'bg-focus-primary shadow-glow-primary hover:shadow-glow-primary-lg disabled:opacity-50 disabled:hover:shadow-none'
           }`}
         >
           {isOffline ? <WifiOff size={18} /> : (isRegister ? <UserPlus size={18} /> : <LogIn size={18} />)}
@@ -261,11 +261,11 @@ function AuthScreen() {
           type="button"
           onClick={() => {
             if (window.api && window.api.shell) {
-              window.api.shell.openExternal('https://stayaurora.dev/auth');
+              window.api.shell.openExternal(`${import.meta.env.VITE_WEB_APP_URL}/auth`);
             }
           }}
           disabled={loading || isOffline}
-          className={`w-full bg-white text-black font-bold py-3.5 px-6 rounded-xl transition-all flex justify-center items-center gap-3 ${
+          className={`w-full bg-white text-black font-bold py-3.5 px-6 rounded-xl transition duration-150 ease-ui-out active:scale-95 flex justify-center items-center gap-3 ${
             isOffline ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'
           }`}
         >

@@ -48,7 +48,7 @@ function DevPanel({ onClose, onTriggerStreak }) {
                 <button
                   key={p.label}
                   onClick={() => setStreakValue(p.streak)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors duration-150 ease-ui-out active:scale-95 border ${
                     streakValue === p.streak
                       ? 'bg-white/10 text-white border-white/20'
                       : 'text-gray-500 border-transparent hover:text-gray-300 hover:bg-white/5'
@@ -73,7 +73,7 @@ function DevPanel({ onClose, onTriggerStreak }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onTriggerStreak(streakValue)}
-                className="bg-focus-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5 shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                className="bg-focus-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5 shadow-glow-primary-sm"
               >
                 <Play size={14} fill="currentColor" /> Fire
               </motion.button>

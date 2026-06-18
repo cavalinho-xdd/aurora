@@ -5,7 +5,7 @@ import React, { useState } from 'react';
  * Allows users to set focus intent, duration, and toggle Hardcore Mode.
  */
 import { createPortal } from 'react-dom';
-import { Play, Shield, AlertTriangle, Clock, Zap } from 'lucide-react';
+import { Play, Shield, AlertTriangle, Clock, Zap, Paperclip, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import ToggleSwitch from './ToggleSwitch';
@@ -21,6 +21,16 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
   const [showHardcoreModal, setShowHardcoreModal] = useState(false);
   const [showNoApiModal, setShowNoApiModal] = useState(false);
   const [topicError, setTopicError] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const handleSelectFile = async () => {
+    if (window.api && window.api.system) {
+      const file = await window.api.system.openFileDialog();
+      if (file) {
+        setSelectedFile(file);
+      }
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -39,13 +49,13 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
     if (isHardcore) {
       setShowHardcoreModal(true);
     } else {
-      onStart({ topic, minutes, hardcore: false, usePomodoro, pomodoroFocus, pomodoroBreak });
+      onStart({ topic, minutes, hardcore: false, usePomodoro, pomodoroFocus, pomodoroBreak, filePath: selectedFile?.path });
     }
   };
 
   const confirmHardcore = () => {
     setShowHardcoreModal(false);
-    onStart({ topic, minutes, hardcore: true, usePomodoro, pomodoroFocus, pomodoroBreak });
+    onStart({ topic, minutes, hardcore: true, usePomodoro, pomodoroFocus, pomodoroBreak, filePath: selectedFile?.path });
   };
 
   const confirmNoApi = () => {
@@ -53,7 +63,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
     if (isHardcore) {
       setShowHardcoreModal(true);
     } else {
-      onStart({ topic, minutes, hardcore: false, usePomodoro, pomodoroFocus, pomodoroBreak });
+      onStart({ topic, minutes, hardcore: false, usePomodoro, pomodoroFocus, pomodoroBreak, filePath: selectedFile?.path });
     }
   };
 
@@ -94,21 +104,31 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
           <label className="block mb-3 text-sm text-gray-500 font-medium tracking-wide">
             {t('goalPlanner.quizTopic')}
           </label>
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder={t('goalPlanner.topicPlaceholder')} 
-              value={topic}
-              onChange={(e) => { setTopic(e.target.value); if (topicError) setTopicError(false); }}
-              className={`w-full glass-card border ${topicError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-5 py-4 text-white text-lg placeholder-gray-500 focus:outline-none transition-all shadow-inner`}
-            />
+          <div className="relative flex items-center gap-2">
+            <div className="relative flex-1">
+              <input 
+                type="text" 
+                placeholder={t('goalPlanner.topicPlaceholder')} 
+                value={topic}
+                onChange={(e) => { setTopic(e.target.value); if (topicError) setTopicError(false); }}
+                className={`w-full glass-card border ${topicError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-5 py-4 text-white text-lg placeholder-gray-500 focus:outline-none transition-colors duration-150 ease-ui-out shadow-inner pr-12`}
+              />
+              <button
+                type="button"
+                onClick={handleSelectFile}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-focus-primary transition-colors"
+                title="Attach Document"
+              >
+                <Paperclip size={20} />
+              </button>
+            </div>
             <AnimatePresence>
               {topicError && (
                 <motion.div 
                   initial={{ opacity: 0, y: 10, scale: 0.95 }} 
                   animate={{ opacity: 1, y: 0, scale: 1 }} 
                   exit={{ opacity: 0, scale: 0.95 }} 
-                  className="absolute -top-12 left-0 bg-[#EF4444] text-white px-4 py-2 rounded-lg text-sm font-medium shadow-[0_0_15px_rgba(239,68,68,0.5)] flex items-center gap-2 z-10"
+                  className="absolute -top-12 left-0 bg-[#EF4444] text-white px-4 py-2 rounded-lg text-sm font-medium shadow-glow-red-sm flex items-center gap-2 z-10"
                 >
                   <AlertTriangle size={14} /> {t('goalPlanner.requiredField')}
                   {/* Tooltip triangle */}
@@ -117,6 +137,26 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               )}
             </AnimatePresence>
           </div>
+          <AnimatePresence>
+            {selectedFile && (
+              <motion.div
+                initial={{ opacity: 0, y: -5, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="mt-3 flex items-center gap-2 bg-focus-primary/10 border border-focus-primary/20 text-focus-primary px-4 py-2 rounded-lg w-fit"
+              >
+                <Paperclip size={14} />
+                <span className="text-sm font-medium">{selectedFile.name}</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedFile(null)}
+                  className="ml-2 hover:bg-focus-primary/20 rounded-full p-0.5 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
         
         {/* Time Selection — presets + custom */}
@@ -130,7 +170,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 key={preset}
                 type="button"
                 onClick={() => setMinutes(preset)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-colors duration-150 ease-ui-out active:scale-95 ${
                   minutes === preset 
                     ? 'bg-white/15 text-white border border-white/20' 
                     : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10 hover:text-gray-300'
@@ -147,7 +187,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               onChange={(e) => setMinutes(parseInt(e.target.value) || '')}
               placeholder="min"
               required
-              className="w-20 glass-card border border-white/10 rounded-full px-4 py-2.5 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-all placeholder-gray-600"
+              className="w-20 glass-card border border-white/10 rounded-full px-4 py-2.5 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors duration-150 ease-ui-out placeholder-gray-600"
             />
           </div>
         </div>
@@ -155,7 +195,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
         {/* Options row — premium glass cards with toggles */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div 
-            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${usePomodoro ? 'glow-border' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
+            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-colors duration-150 ease-ui-out active:scale-[0.98] ${usePomodoro ? 'glow-border' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
             onClick={() => setUsePomodoro(!usePomodoro)}
           >
             <div className="flex items-center gap-4">
@@ -171,7 +211,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
           </div>
 
           <div 
-            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-all ${isHardcore ? 'border border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.15)] bg-red-500/5' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
+            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-colors duration-150 ease-ui-out active:scale-[0.98] ${isHardcore ? 'border border-red-500/50 shadow-glow-red-sm bg-red-500/5' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
             onClick={() => setIsHardcore(!isHardcore)}
           >
             <div className="flex items-center gap-4">
@@ -203,7 +243,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <input 
                   type="number" min="1" max="120" 
                   value={pomodoroFocus} onChange={e => setPomodoroFocus(parseInt(e.target.value) || 1)}
-                  className="w-24 glass-card border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-all"
+                  className="w-24 glass-card border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors duration-150 ease-ui-out"
                 />
               </div>
               <div>
@@ -213,7 +253,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <input 
                   type="number" min="1" max="60" 
                   value={pomodoroBreak} onChange={e => setPomodoroBreak(parseInt(e.target.value) || 1)}
-                  className="w-24 glass-card border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-all"
+                  className="w-24 glass-card border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors duration-150 ease-ui-out"
                 />
               </div>
             </motion.div>
@@ -226,7 +266,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
             type="submit" 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full text-lg shadow-[0_0_30px_rgba(139,92,246,0.25)] hover:shadow-[0_0_50px_rgba(139,92,246,0.4)] transition-shadow flex items-center gap-3"
+            className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full text-lg shadow-glow-primary hover:shadow-glow-primary-lg transition duration-150 ease-ui-out active:scale-95 flex items-center gap-3"
           >
             <Play size={20} fill="currentColor" /> {t('goalPlanner.startFocus')}
           </motion.button>
@@ -246,7 +286,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative bg-[#0B0A15]/95 border border-red-500/20 rounded-3xl p-8 max-w-md w-full shadow-2xl backdrop-blur-xl flex flex-col items-center"
             >
-              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 text-red-500 mx-auto shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 text-red-500 mx-auto shadow-glow-red-sm">
                 <AlertTriangle size={32} />
               </div>
               <h3 className="text-2xl font-bold text-center mb-3 text-red-400">{t('goalPlanner.hardcoreWarningTitle')}</h3>
@@ -257,14 +297,14 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <button 
                   type="button"
                   onClick={() => setShowHardcoreModal(false)}
-                  className="flex-1 py-3 px-4 rounded-full text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition-all text-sm font-medium border border-white/5"
+                  className="flex-1 py-3 px-4 rounded-full text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors duration-150 ease-ui-out active:scale-95 text-sm font-medium border border-white/5"
                 >
                   {t('goalPlanner.cancel')}
                 </button>
                 <button 
                   type="button"
                   onClick={confirmHardcore}
-                  className="flex-1 py-3 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold transition-all text-sm shadow-[0_0_20px_rgba(239,68,68,0.3)]"
+                  className="flex-1 py-3 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm shadow-glow-red"
                 >
                   {t('goalPlanner.hardcoreAccept')}
                 </button>
@@ -283,7 +323,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="relative bg-[#0B0A15]/95 border border-orange-500/20 rounded-3xl p-8 max-w-md w-full shadow-2xl backdrop-blur-xl flex flex-col items-center"
             >
-              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mb-6 text-orange-400 mx-auto shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mb-6 text-orange-400 mx-auto shadow-glow-orange-sm">
                 <AlertTriangle size={32} />
               </div>
               <h3 className="text-2xl font-bold text-center mb-3 text-white">{t('goalPlanner.noApiTitle')}</h3>
@@ -294,14 +334,14 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <button 
                   type="button"
                   onClick={() => setShowNoApiModal(false)}
-                  className="flex-1 py-3 px-4 rounded-full text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition-all text-sm font-medium border border-white/5"
+                  className="flex-1 py-3 px-4 rounded-full text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 transition-colors duration-150 ease-ui-out active:scale-95 text-sm font-medium border border-white/5"
                 >
                   {t('goalPlanner.cancel')}
                 </button>
                 <button 
                   type="button"
                   onClick={confirmNoApi}
-                  className="flex-1 py-3 px-4 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold transition-all text-sm shadow-[0_0_20px_rgba(249,115,22,0.3)]"
+                  className="flex-1 py-3 px-4 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm shadow-glow-orange"
                 >
                   {t('goalPlanner.continueWithoutApi')}
                 </button>

@@ -58,7 +58,7 @@ export default function UpdateNotification() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
         transition={{ type: 'spring', bounce: 0.3 }}
-        className="fixed bottom-6 right-6 z-[100] w-80 bg-[#0B0A15]/95 border border-white/10 rounded-2xl p-5 shadow-[0_10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl flex flex-col"
+        className="fixed bottom-6 right-6 z-[100] w-80 bg-[#0B0A15]/95 border border-white/10 rounded-2xl p-5 shadow-2xl backdrop-blur-xl flex flex-col"
       >
         {status === 'downloading' && (
           <>
@@ -97,7 +97,7 @@ export default function UpdateNotification() {
             <div className="flex gap-2 mt-2">
               <button 
                 onClick={handleInstall}
-                className="flex-1 py-2.5 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-all text-sm shadow-[0_0_15px_rgba(139,92,246,0.3)]"
+                className="flex-1 py-2.5 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm shadow-glow-primary-sm"
               >
                 {t('updater.installNow', 'Restartovat')}
               </button>
@@ -124,7 +124,7 @@ export default function UpdateNotification() {
             <div className="flex gap-2 mt-2">
               <button 
                 onClick={handleDismiss}
-                className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-all text-sm"
+                className="flex-1 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium transition-colors duration-150 ease-ui-out active:scale-95 text-sm"
               >
                 {t('goalPlanner.cancel')}
               </button>

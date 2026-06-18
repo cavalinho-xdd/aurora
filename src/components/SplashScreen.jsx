@@ -71,8 +71,8 @@ function SplashScreen({ onComplete }) {
               transition={{ duration: 1.5, ease: 'easeOut', delay: 0.5 }}
               className="flex items-center gap-6"
             >
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] shadow-[0_0_30px_rgba(139,92,246,0.6)]"></div>
-              <h1 className="text-8xl font-black tracking-tighter text-white drop-shadow-[0_0_30px_rgba(139,92,246,0.3)]">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] shadow-glow-primary"></div>
+              <h1 className="text-8xl font-black tracking-tighter text-white drop-shadow-glow-primary">
                 aurora
               </h1>
             </motion.div>

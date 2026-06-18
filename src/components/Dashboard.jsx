@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 /**
  * @file Dashboard.jsx
  * @description Primary user overview interface.
@@ -7,9 +7,28 @@ import React from 'react';
  */
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { db } from '../firebase';
 
-function Dashboard({ stats, userName }) {
+function Dashboard({ stats, userName, userId }) {
   const { t } = useTranslation();
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const fetchHistory = async () => {
+      try {
+        const q = query(collection(db, `users/${userId}/history`), orderBy('date', 'desc'), limit(5));
+        const querySnapshot = await getDocs(q);
+        const docs = [];
+        querySnapshot.forEach(doc => docs.push({ id: doc.id, ...doc.data() }));
+        setHistory(docs);
+      } catch (err) {
+        console.error("Failed to fetch history:", err);
+      }
+    };
+    fetchHistory();
+  }, [userId]);
   const progressPercent = (stats.xp / (stats.level * 100)) * 100;
 
   const hour = new Date().getHours();
@@ -87,6 +106,31 @@ function Dashboard({ stats, userName }) {
           <div className="text-5xl font-bold text-white leading-none tracking-tighter">{stats.goalsCompleted}</div>
         </div>
       </motion.div>
+
+      {/* History */}
+      {history.length > 0 && (
+        <motion.div 
+          className="mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-6">{t('dashboard.recentSessions', 'Recent Sessions')}</p>
+          <div className="flex flex-col gap-3">
+            {history.map((session) => (
+              <div key={session.id} className="flex justify-between items-center bg-white/5 border border-white/5 rounded-xl px-5 py-4 backdrop-blur-md hover:bg-white/10 transition-colors">
+                <div>
+                  <h4 className="text-white font-medium">{session.topic || 'General Focus'}</h4>
+                  <p className="text-xs text-gray-400 mt-1">{new Date(session.date).toLocaleDateString()} • {session.minutes} {t('dashboard.minutes', 'min')}</p>
+                </div>
+                <div className="text-focus-primary font-bold">
+                  +{session.xpGained} XP
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 }

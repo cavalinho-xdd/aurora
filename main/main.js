@@ -5,7 +5,7 @@
  * Contains critical logic for deep-linking (OAuth flows) and the "Hardcore Mode" constraint 
  * which deliberately intercepts application termination events.
  */
-const { app, BrowserWindow, ipcMain, Tray, Menu, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, shell, dialog } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 
@@ -15,6 +15,7 @@ const { startBlocker, stopBlocker } = require('./blocker');
 const { generateQuestions, evaluateAnswers } = require('./geminiService');
 const { loadData, saveData } = require('./storage');
 const { getProcesses } = require('./scanner');
+const { parseFile } = require('./fileParser');
 
 let mainWindow;
 let tray = null;
@@ -55,6 +56,8 @@ app.on('open-url', (event, url) => {
 const http = require('http');
 
 let authServer = null;
+let isFocusing = false;
+let blockedDomains = [];
 
 function startAuthServer() {
   if (authServer) return;
@@ -89,14 +92,28 @@ function startAuthServer() {
         res.writeHead(500);
         res.end('Internal Server Error');
       }
+    } else if (req.url === '/status') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
+      });
+      res.end(JSON.stringify({
+        isFocusing,
+        isHardcoreMode,
+        blacklist: blockedDomains
+      }));
     } else {
-      res.writeHead(404);
+      res.writeHead(404, { 'Access-Control-Allow-Origin': '*' });
       res.end('Not Found');
     }
   });
 
   authServer.on('error', (e) => {
-    console.error("Auth server error:", e);
+    if (e.code === 'EADDRINUSE') {
+      console.warn("Port 43210 is in use. Local auth server skipped. Relying on deep links.");
+    } else {
+      console.error("Auth server error:", e);
+    }
   });
 
   authServer.listen(43210, '127.0.0.1', () => {
@@ -161,18 +178,27 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  ipcMain.on('blocker:start', (event, { blacklist, hardcore }) => {
+  ipcMain.on('blocker:start', (event, { blacklist, hardcore, blockedWebsites }) => {
+    isFocusing = true;
     isHardcoreMode = hardcore || false;
+    blockedDomains = blockedWebsites || [];
     startBlocker(blacklist);
   });
 
   ipcMain.on('blocker:stop', () => {
+    isFocusing = false;
     isHardcoreMode = false;
+    blockedDomains = [];
     stopBlocker();
   });
 
-  ipcMain.handle('gemini:generate', async (event, { topic, apiKey, lang }) => {
-    return await generateQuestions(topic, apiKey, lang);
+  ipcMain.handle('gemini:generate', async (event, { topic, apiKey, lang, filePath }) => {
+    let documentText = '';
+    if (filePath) {
+      console.log(`[Main] Parsing file for context: ${filePath}`);
+      documentText = await parseFile(filePath);
+    }
+    return await generateQuestions(topic, apiKey, lang, documentText);
   });
 
   ipcMain.handle('gemini:evaluate', async (event, { qaPairs, apiKey, lang }) => {
@@ -193,6 +219,20 @@ app.whenReady().then(() => {
 
   ipcMain.on('shell:openExternal', (event, { url }) => {
     shell.openExternal(url);
+  });
+
+  ipcMain.handle('dialog:openFile', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openFile'],
+      filters: [
+        { name: 'Documents', extensions: ['pdf', 'docx', 'txt', 'md'] }
+      ]
+    });
+    if (!result.canceled && result.filePaths.length > 0) {
+      const filePath = result.filePaths[0];
+      return { path: filePath, name: path.basename(filePath) };
+    }
+    return null;
   });
 
   autoUpdater.on('update-available', (info) => {

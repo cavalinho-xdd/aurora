@@ -76,6 +76,12 @@ npm run package:linux # For Linux
 npm run package:mac   # For macOS
 ```
 
+## 💖 Support the Project
+
+Aurora is a passion project built by a solo student developer. It is 100% free. If you find the app helpful and want to support its continued development (and help cover the costs of the Apple Developer Certificate to remove those scary macOS warnings!), you can buy me a coffee:
+
+<a href='https://ko-fi.com/cavalinho-xdd' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi2.png?v=3' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+
 ## 🐛 Bug Reports & Feedback
 
 Found a bug or have a feature request? Please [open an issue](https://github.com/cavalinho-xdd/aurora/issues) on GitHub or use the "Report a Bug" button directly inside the app.

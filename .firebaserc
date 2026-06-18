@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "stay-aurora",
+    "dev": "aurora-dev-62ea2"
+  }
+}

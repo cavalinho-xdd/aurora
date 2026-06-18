@@ -6,13 +6,14 @@ import React, { useState, useEffect } from 'react';
  * and synchronizes local Electron storage with the remote Firebase Firestore database.
  * Also handles offline fallbacks and "No API" modes for graceful degradation.
  */
-import { Settings as SettingsIcon, Trophy, LogOut, LayoutDashboard, AlertCircle, WifiOff } from 'lucide-react';
+import { Settings as SettingsIcon, Trophy, LogOut, LayoutDashboard, AlertCircle, WifiOff, ListTodo } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, setDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'framer-motion';
 import Dashboard from './components/Dashboard';
 import GoalPlanner from './components/GoalPlanner';
+import FocusBacklog from './components/FocusBacklog';
 import TimerScreen from './components/TimerScreen';
 import QuizScreen from './components/QuizScreen';
 import Settings from './components/Settings';
@@ -35,7 +36,7 @@ function App() {
 
   const [phase, setPhase] = useState('IDLE');
   const [userData, setUserData] = useState(null);
-  const [currentGoal, setCurrentGoal] = useState({ topic: '', minutes: 25, hardcore: false });
+  const [currentGoal, setCurrentGoal] = useState({ topic: '', minutes: 25, hardcore: false, taskId: null });
   const [quizData, setQuizData] = useState(null);
   const [showStreakCelebration, setShowStreakCelebration] = useState(false);
   const [noApiUsed, setNoApiUsed] = useState(false);
@@ -101,7 +102,7 @@ function App() {
             }
           }
           
-          let localSettings = { apiKey: '', blacklist: ['discord', 'steam'], lowGraphicsMode: false };
+          let localSettings = { apiKey: '', blacklist: ['discord', 'steam'], blockedWebsites: ['youtube.com', 'tiktok.com', 'instagram.com'], lowGraphicsMode: false };
           if (window.api && window.api.storage) {
             const stored = await window.api.storage.load();
             if (stored && stored.settings) localSettings = stored.settings;
@@ -112,7 +113,7 @@ function App() {
           console.error("Error loading user data", e);
           setUserData({ 
             stats: { xp: 0, level: 1, goalsCompleted: 0, streak: 0, lastFocusDate: null, totalFocusMinutes: 0 }, 
-            settings: { apiKey: '', blacklist: ['discord', 'steam'], lowGraphicsMode: false },
+            settings: { apiKey: '', blacklist: ['discord', 'steam'], blockedWebsites: ['youtube.com', 'tiktok.com', 'instagram.com'], lowGraphicsMode: false },
             error: e.message
           });
         }
@@ -127,9 +128,17 @@ function App() {
   const handleSaveNickname = async () => {
     if (!tempNickname.trim()) return;
     try {
-      await updateProfile(currentUser, { displayName: tempNickname });
+      const q = query(collection(db, "users"), where("displayNameLower", "==", tempNickname.trim().toLowerCase()));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        alert(t('socialScreen.nameTaken', 'Tato přezdívka je už zabraná. Vyberte si prosím jinou.'));
+        return;
+      }
+
+      await updateProfile(currentUser, { displayName: tempNickname.trim() });
       await setDoc(doc(db, "users", currentUser.uid), {
-        displayName: tempNickname,
+        displayName: tempNickname.trim(),
+        displayNameLower: tempNickname.trim().toLowerCase(),
         email: currentUser.email,
         xp: 0,
         level: 1,
@@ -161,11 +170,11 @@ function App() {
     setPhase('FOCUS');
     
     if (window.api && window.api.blocker) {
-      window.api.blocker.start(userData.settings.blacklist, goal.hardcore);
+      window.api.blocker.start(userData.settings.blacklist, goal.hardcore, userData.settings.blockedWebsites);
     }
 
     if (window.api && window.api.gemini && userData.settings.apiKey) {
-      window.api.gemini.generate(goal.topic, userData.settings.apiKey, i18n.language)
+      window.api.gemini.generate(goal.topic, userData.settings.apiKey, i18n.language, goal.filePath)
         .then(res => {
           if (res && res.questions) setQuizData(res.questions);
           else setQuizData(null);
@@ -242,8 +251,27 @@ function App() {
           lastFocusDate: today,
           totalFocusMinutes: newStats.totalFocusMinutes
         });
+
+        // Mark task as completed if this was a backlog task
+        if (currentGoal.taskId) {
+          const taskRef = doc(db, `users/${currentUser.uid}/tasks`, currentGoal.taskId);
+          await updateDoc(taskRef, { completed: true });
+        }
+
+        // Save session history
+        try {
+          const historyRef = collection(db, `users/${currentUser.uid}/history`);
+          await addDoc(historyRef, {
+            topic: currentGoal.topic,
+            minutes: currentGoal.minutes,
+            xpGained: xpGained,
+            date: new Date().toISOString()
+          });
+        } catch (err) {
+          console.error("Failed to save session history:", err);
+        }
       } catch(e) {
-        console.error("Error saving XP to firestore", e);
+        console.error("Error saving XP or task to firestore", e);
       }
     }
   };
@@ -317,7 +345,7 @@ function App() {
             exit={{ opacity: 0, y: -50 }}
             className="fixed top-0 left-0 right-0 z-[100] flex justify-center pt-4 pointer-events-none"
           >
-            <div className="bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-200 px-6 py-2.5 rounded-full shadow-[0_0_20px_rgba(239,68,68,0.2)] flex items-center gap-3 text-sm font-medium pointer-events-auto">
+            <div className="bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-200 px-6 py-2.5 rounded-full shadow-glow-red flex items-center gap-3 text-sm font-medium pointer-events-auto">
               <WifiOff size={16} className="text-red-400" />
               <span>{t('errors.system.offlineTitle')} — {t('errors.system.offlineDesc')}</span>
             </div>
@@ -343,7 +371,7 @@ function App() {
       {!authLoading && currentUser && !currentUser.emailVerified && (
         <div className="h-screen w-screen flex flex-col items-center justify-center relative z-10 text-white">
           <div className="max-w-md w-full bg-[#0B0A15]/95 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center mx-4">
-            <div className="w-16 h-16 rounded-full bg-focus-primary/20 flex items-center justify-center mb-6 text-focus-primary shadow-[0_0_15px_rgba(139,92,246,0.3)]">
+            <div className="w-16 h-16 rounded-full bg-focus-primary/20 flex items-center justify-center mb-6 text-focus-primary shadow-glow-primary-sm">
               <AlertCircle size={32} />
             </div>
             <h2 className="text-2xl font-bold tracking-tight mb-3">{t('authScreen.verifyEmailTitle')}</h2>
@@ -361,7 +389,7 @@ function App() {
                     console.error(e);
                   }
                 }}
-                className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)]"
+                className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-colors shadow-glow-primary active:scale-95 duration-150 ease-ui-out"
               >
                 {t('authScreen.resendEmail')}
               </button>
@@ -374,7 +402,7 @@ function App() {
                     alert("Stále neověřeno. Zkuste to znovu za pár vteřin.");
                   }
                 }}
-                className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-all border border-white/5"
+                className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-colors border border-white/5 active:scale-95 duration-150 ease-ui-out"
               >
                 {t('authScreen.refreshStatus')}
               </button>
@@ -402,7 +430,7 @@ function App() {
                placeholder="Nickname" 
                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors mb-4"
              />
-             <button onClick={handleSaveNickname} className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-all shadow-[0_0_20px_rgba(139,92,246,0.3)]">
+             <button onClick={handleSaveNickname} className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-colors shadow-glow-primary active:scale-95 duration-150 ease-ui-out">
                Start focusing
              </button>
           </div>
@@ -430,7 +458,7 @@ function App() {
           <div className="w-56 bg-black/20 backdrop-blur-2xl flex flex-col py-8 px-4 z-20 border-r border-white/5">
             {/* Logo */}
             <div className="flex items-center gap-3 mb-12 px-3">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-[0_0_12px_rgba(139,92,246,0.6)]"></div>
+              <div className="w-3 h-3 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-glow-primary-sm"></div>
               <span className="text-xl font-bold tracking-tight text-white">aurora</span>
             </div>
 
@@ -438,6 +466,7 @@ function App() {
             <div className="flex flex-col gap-1 flex-1">
               {[
                 { id: 'IDLE', icon: LayoutDashboard, label: t('app.dashboard'), match: ['IDLE', 'FOCUS', 'QUIZ'] },
+                { id: 'BACKLOG', icon: ListTodo, label: t('app.tasks', 'Tasks'), match: ['BACKLOG'] },
                 { id: 'SOCIAL', icon: Trophy, label: t('app.community'), match: ['SOCIAL'] },
                 { id: 'SETTINGS', icon: SettingsIcon, label: t('app.settings'), match: ['SETTINGS'] },
               ].map(item => {
@@ -445,7 +474,7 @@ function App() {
                 return (
                   <button 
                     key={item.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium w-full text-left ${
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 ease-ui-out text-sm font-medium w-full text-left active:scale-[0.98] ${
                       isActive 
                         ? 'text-white bg-white/10' 
                         : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
@@ -454,7 +483,7 @@ function App() {
                   >
                     <item.icon size={18} />
                     {item.label}
-                    {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-focus-primary shadow-[0_0_6px_rgba(139,92,246,0.8)]" />}
+                    {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-focus-primary shadow-glow-primary-sm" />}
                   </button>
                 );
               })}
@@ -470,14 +499,14 @@ function App() {
                 </div>
                 <div className="h-1 bg-white/5 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-focus-primary to-focus-secondary transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-focus-primary to-focus-secondary transition-all duration-500 ease-out"
                     style={{ width: `${(userData.stats.xp / (userData.stats.level * 100)) * 100}%` }}
                   />
                 </div>
               </div>
 
               <button 
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-sm font-medium text-gray-500 hover:text-gray-300 hover:bg-white/5 w-full text-left mt-2" 
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 ease-ui-out text-sm font-medium text-gray-500 hover:text-gray-300 hover:bg-white/5 w-full text-left mt-2 active:scale-[0.98]" 
                 onClick={() => signOut(auth)}
               >
                 <LogOut size={18} /> {t('app.logout')}
@@ -498,8 +527,21 @@ function App() {
                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                     className="flex flex-col gap-16"
                   >
-                    <Dashboard stats={userData.stats} userName={currentUser.displayName} />
+                    <Dashboard stats={userData.stats} userName={currentUser.displayName} userId={currentUser.uid} />
                     <GoalPlanner onStart={handleStartFocus} apiKeyMissing={!userData.settings.apiKey} />
+                  </motion.div>
+                )}
+
+                {phase === 'BACKLOG' && (
+                  <motion.div
+                    key="BACKLOG"
+                    initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, y: -20, filter: 'blur(8px)' }}
+                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className="flex flex-col flex-1"
+                  >
+                    <FocusBacklog onStartFocus={handleStartFocus} />
                   </motion.div>
                 )}
 

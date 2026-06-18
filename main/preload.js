@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('api', {
   blocker: {
-    start: (blacklist, hardcore) => ipcRenderer.send('blocker:start', { blacklist, hardcore }),
+    start: (blacklist, hardcore, blockedWebsites) => ipcRenderer.send('blocker:start', { blacklist, hardcore, blockedWebsites }),
     stop: () => ipcRenderer.send('blocker:stop')
   },
   gemini: {
@@ -18,6 +18,9 @@ contextBridge.exposeInMainWorld('api', {
   },
   shell: {
     openExternal: (url) => ipcRenderer.send('shell:openExternal', { url })
+  },
+  system: {
+    openFileDialog: () => ipcRenderer.invoke('dialog:openFile')
   },
   updater: {
     onError: (callback) => ipcRenderer.on('updater:error', (event, error) => callback(error)),

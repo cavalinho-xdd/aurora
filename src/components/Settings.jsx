@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 /**
  * @file Settings.jsx
  * @description Application configuration interface.
  * Handles user preferences including Gemini API keys, language selection,
  * process blacklisting for the Hardcore blocker, and performance modes.
  */
-import { Save, Shield, Key, Globe, ChevronDown, Check, Activity, X, Search, BatteryMedium } from 'lucide-react';
+import { Save, Shield, Key, Globe, ChevronDown, Check, CheckCircle2, Activity, X, Search, BatteryMedium } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import ToggleSwitch from './ToggleSwitch';
@@ -14,6 +15,7 @@ function Settings({ settings, onSave }) {
   const { t, i18n } = useTranslation();
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
   const [blacklistRaw, setBlacklistRaw] = useState((settings.blacklist || []).join('\n'));
+  const [blockedWebsitesRaw, setBlockedWebsitesRaw] = useState((settings.blockedWebsites || []).join('\n'));
   const [lowGraphicsMode, setLowGraphicsMode] = useState(settings.lowGraphicsMode || false);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
@@ -21,6 +23,7 @@ function Settings({ settings, onSave }) {
   const [scannedProcesses, setScannedProcesses] = useState([]);
   const [selectedProcesses, setSelectedProcesses] = useState(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
 
   const handleScan = async () => {
     setIsScanning(true);
@@ -62,7 +65,12 @@ function Settings({ settings, onSave }) {
 
   const handleSave = () => {
     const list = blacklistRaw.split('\n').map(s => s.trim()).filter(Boolean);
-    onSave({ apiKey, blacklist: list, lowGraphicsMode });
+    const websitesList = blockedWebsitesRaw.split('\n').map(s => s.trim()).filter(Boolean);
+    onSave({ apiKey, blacklist: list, blockedWebsites: websitesList, lowGraphicsMode });
+    
+    // UI-UX Pro Max: Inline reassurance
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
   };
 
   return (
@@ -172,6 +180,27 @@ function Settings({ settings, onSave }) {
         </div>
       </motion.div>
 
+      {/* Blocked Websites */}
+      <motion.div 
+        className="mb-8 flex flex-col"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.16, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <label className="flex items-center gap-2 mb-3 text-sm text-gray-500 font-medium tracking-wide">
+          <Globe size={16} /> {t('settings.blockedWebsitesLabel', 'Blocked Websites (Chrome Extension)')}
+        </label>
+        <textarea 
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors resize-none min-h-[160px]"
+          value={blockedWebsitesRaw}
+          onChange={(e) => setBlockedWebsitesRaw(e.target.value)}
+          placeholder={`youtube.com\ntiktok.com\ninstagram.com`}
+        />
+        <div className="flex justify-between items-start mt-4">
+          <p className="text-xs text-gray-600 max-w-[80%]">{t('settings.blockedWebsitesDisclaimer', 'These domains will be blocked in your browser via the Aurora Chrome extension during any focus session.')}</p>
+        </div>
+      </motion.div>
+
       {/* Low Graphics Mode */}
       <motion.div 
         className="mb-8 pb-8 border-b border-white/5"
@@ -197,9 +226,35 @@ function Settings({ settings, onSave }) {
         <button 
           type="button"
           onClick={handleSave}
-          className="w-full bg-focus-primary hover:bg-focus-secondary text-white font-bold py-4 px-8 rounded-xl shadow-[0_0_20px_rgba(139,92,246,0.3)] transition-all hover:shadow-[0_0_25px_rgba(236,72,153,0.4)] flex items-center justify-center gap-2"
+          className={`w-full text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 ease-ui-out active:scale-95 flex items-center justify-center gap-2 ${
+            isSaved 
+              ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40 pointer-events-none' 
+              : 'bg-focus-primary hover:bg-focus-secondary shadow-glow-primary hover:shadow-glow-secondary-lg'
+          }`}
         >
-          <Save size={18} /> {t('settings.saveSettings')}
+          {isSaved ? (
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key="saved"
+                initial={{ scale: 0.5, opacity: 0 }} 
+                animate={{ scale: 1, opacity: 1 }} 
+                className="flex items-center gap-2"
+              >
+                <CheckCircle2 size={18} /> {t('settings.saved', 'Uloženo!')}
+              </motion.div>
+            </AnimatePresence>
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key="save"
+                initial={{ opacity: 0 }} 
+                animate={{ opacity: 1 }} 
+                className="flex items-center gap-2"
+              >
+                <Save size={18} /> {t('settings.saveSettings')}
+              </motion.div>
+            </AnimatePresence>
+          )}
         </button>
 
         <button 
@@ -209,74 +264,78 @@ function Settings({ settings, onSave }) {
               window.api.shell.openExternal("https://forms.gle/WbAz2Aat8qNAaPnTA");
             }
           }}
-          className="w-full mt-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-semibold py-3 px-8 rounded-xl transition-all"
+          className="w-full mt-4 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-semibold py-3 px-8 rounded-xl transition-colors duration-150 ease-ui-out active:scale-95"
         >
           {t('settings.reportBug')}
         </button>
       </motion.div>
 
       {/* Scanner Modal */}
-      <AnimatePresence>
-        {showScannerModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex justify-center items-start pt-10 px-4 pb-10"
-          >
+      {createPortal(
+        <AnimatePresence>
+          {showScannerModal && (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-[#0B0A15] border border-white/10 rounded-2xl p-6 w-full max-w-lg flex flex-col max-h-full"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex justify-center items-center p-4"
             >
-              <div className="flex justify-between items-center mb-6 shrink-0">
-                <h3 className="text-xl font-bold">{t('settings.scanTitle')}</h3>
-                <button type="button" onClick={() => setShowScannerModal(false)} className="text-gray-500 hover:text-white transition-colors">
-                  <X size={20} />
-                </button>
-              </div>
-
-              <div className="relative mb-4 shrink-0">
-                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={i18n.language === 'cs' ? 'Hledat aplikaci...' : 'Search apps...'}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-focus-primary/50 transition-colors"
-                />
-              </div>
-              
-              <div className="overflow-y-auto flex-1 min-h-0 flex flex-col gap-1 mb-6">
-                {scannedProcesses.filter(p => p.toLowerCase().includes(searchQuery.toLowerCase())).map(proc => (
-                  <label key={proc} className="flex items-center gap-3 py-2.5 px-3 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
-                    <input 
-                      type="checkbox" 
-                      checked={selectedProcesses.has(proc)} 
-                      onChange={() => toggleProcess(proc)} 
-                      className="w-4 h-4 accent-focus-primary cursor-pointer shrink-0 rounded"
-                    />
-                    <span className="text-sm font-mono text-gray-300 break-all">{proc}</span>
-                  </label>
-                ))}
-                {scannedProcesses.filter(p => p.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                  <p className="text-gray-600 text-center py-8 text-sm">Nic nenalezeno.</p>
-                )}
-              </div>
-
-              <motion.button 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full bg-focus-primary text-white font-bold py-3 px-6 rounded-full transition-colors shrink-0" 
-                onClick={handleApplyScanner}
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                className="bg-[#0B0A15]/95 border border-white/10 rounded-3xl p-6 w-full max-w-lg flex flex-col max-h-[85vh] shadow-2xl"
               >
-                {t('settings.apply')} ({selectedProcesses.size})
-              </motion.button>
+                <div className="flex justify-between items-center mb-6 shrink-0">
+                  <h3 className="text-xl font-bold">{t('settings.scanTitle')}</h3>
+                  <button type="button" onClick={() => setShowScannerModal(false)} className="text-gray-500 hover:text-white transition-colors">
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="relative mb-4 shrink-0">
+                  <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600" />
+                  <input 
+                    type="text" 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={i18n.language === 'cs' ? 'Hledat aplikaci...' : 'Search apps...'}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-focus-primary/50 transition-colors"
+                  />
+                </div>
+                
+                <div className="overflow-y-auto flex-1 min-h-0 flex flex-col gap-1 mb-6 custom-scrollbar">
+                  {scannedProcesses.filter(p => p.toLowerCase().includes(searchQuery.toLowerCase())).map(proc => (
+                    <label key={proc} className="flex items-center gap-3 py-2.5 px-3 hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedProcesses.has(proc)} 
+                        onChange={() => toggleProcess(proc)} 
+                        className="w-4 h-4 accent-focus-primary cursor-pointer shrink-0 rounded"
+                      />
+                      <span className="text-sm font-mono text-gray-300 break-all">{proc}</span>
+                    </label>
+                  ))}
+                  {scannedProcesses.filter(p => p.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
+                    <p className="text-gray-600 text-center py-8 text-sm">Nic nenalezeno.</p>
+                  )}
+                </div>
+
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full bg-focus-primary text-white font-bold py-3 px-6 rounded-full transition-colors shrink-0" 
+                  onClick={handleApplyScanner}
+                >
+                  {t('settings.apply')} ({selectedProcesses.size})
+                </motion.button>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

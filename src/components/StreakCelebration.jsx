@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { playLevelUp } from '../utils/soundService';
 
 function getFlameConfig(streak, t) {
   if (streak <= 2) return { scale: 0.8, yOffset: 0, intensity: 0.6, label: t ? t('streakCelebration.labels.spark') : 'Spark', particles: 3, coreType: 'none' };
@@ -20,7 +21,7 @@ function FlameSVG({ streak }) {
       transition={{ duration: 0.8, type: 'spring', bounce: 0.4, delay: 0.1 }}
       className="relative flex items-center justify-center w-40 h-40 origin-bottom"
     >
-      <svg width="100%" height="100%" viewBox="0 0 100 100" className="drop-shadow-[0_0_30px_rgba(139,92,246,0.6)] overflow-visible">
+      <svg width="100%" height="100%" viewBox="0 0 100 100" className="drop-shadow-glow-primary overflow-visible">
         <defs>
           <linearGradient id="flameOuter" x1="0%" y1="100%" x2="0%" y2="0%">
             <stop offset="0%" stopColor="#8B5CF6" />
@@ -124,6 +125,10 @@ function StreakCelebration({ streak, onComplete, noApiUsed }) {
   const { t } = useTranslation();
   const config = getFlameConfig(streak, t);
   
+  useEffect(() => {
+    playLevelUp();
+  }, []);
+  
   return (
     <AnimatePresence>
       <motion.div
@@ -166,7 +171,7 @@ function StreakCelebration({ streak, onComplete, noApiUsed }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="text-8xl font-black text-white tracking-tighter leading-none mb-2 drop-shadow-[0_0_20px_rgba(255,255,255,0.2)]">
+            <div className="text-8xl font-black text-white tracking-tighter leading-none mb-2 drop-shadow-md">
               {streak}
             </div>
             <div className="text-sm text-gray-400 uppercase tracking-[0.3em] font-medium mb-6">
