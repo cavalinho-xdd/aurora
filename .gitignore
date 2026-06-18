@@ -2,9 +2,26 @@ node_modules/
 dist/
 release/
 .env
+.env.*
+!.env.example
 .gemini/
 .agent/
 .continue/
 *.md
 *.log
 .DS_Store
+
+# Python & Agents
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDEs & Systém
+.vscode/
+.idea/
+
+# Electron & Node build
+build/
+out/
+.npm/
