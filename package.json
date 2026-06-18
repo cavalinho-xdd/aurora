@@ -1,6 +1,6 @@
 {
 	"name": "aurora",
-	"version": "1.0.5-alpha",
+	"version": "1.0.10-alpha.5",
 	"description": "A gamified Pomodoro app with AI evaluation.",
 	"main": "main/main.js",
 	"scripts": {
