@@ -201,8 +201,10 @@ app.whenReady().then(() => {
     return await generateQuestions(topic, apiKey, lang, documentText);
   });
 
-  ipcMain.handle('gemini:evaluate', async (event, { qaPairs, apiKey, lang }) => {
-    return await evaluateAnswers(qaPairs, apiKey, lang);
+  ipcMain.handle('gemini:evaluate', async (event, { qaPairs, apiKey, lang, persona, scratchpadText }) => {
+    return await evaluateAnswers(qaPairs, apiKey, lang, persona, scratchpadText, (chunk) => {
+      event.sender.send('gemini:stream', chunk);
+    });
   });
 
   ipcMain.handle('storage:load', () => {

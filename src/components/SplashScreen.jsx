@@ -8,7 +8,7 @@ function SplashScreen({ onComplete }) {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsVisible(false);
-      setTimeout(() => onComplete(), 1000); 
+      setTimeout(() => onComplete(), 300); 
     }, 2800);
     return () => clearTimeout(timer);
   }, [onComplete]);
@@ -17,9 +17,9 @@ function SplashScreen({ onComplete }) {
     <AnimatePresence>
       {isVisible && (
         <motion.div 
-          className="fixed inset-0 z-[9999] bg-[#0B0A15] overflow-hidden flex items-center justify-center"
+          className="fixed inset-0 z-[var(--z-toast)] bg-[#0B0A15] overflow-hidden flex items-center justify-center"
           exit={{ opacity: 0, filter: 'blur(20px)' }}
-          transition={{ duration: 1, ease: 'easeInOut' }}
+          transition={{ duration: 0.3, ease: 'easeIn' }}
         >
           {/* Background Aurora matching the web app */}
           <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none z-0">
@@ -66,21 +66,21 @@ function SplashScreen({ onComplete }) {
           <div className="relative z-20 text-center flex flex-col items-center">
             {/* Animated Logo & Text */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.8, filter: 'blur(20px)' }}
-              animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, transform: "scale(0.85)", filter: 'blur(20px)' }}
+              animate={{ opacity: 1, transform: "scale(1)", filter: 'blur(0px)' }}
               transition={{ duration: 1.5, ease: 'easeOut', delay: 0.5 }}
               className="flex items-center gap-6"
             >
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#8B5CF6] to-[#EC4899] shadow-glow-primary"></div>
-              <h1 className="text-8xl font-black tracking-tighter text-white drop-shadow-glow-primary">
+              <div className="w-16 h-16 rounded-full bg-focus-primary"></div>
+              <h1 className="text-8xl font-black tracking-tighter text-white">
                 aurora
               </h1>
             </motion.div>
 
             {/* Subtitle */}
             <motion.p
-              initial={{ opacity: 0, y: 10, filter: 'blur(10px)' }}
-              animate={{ opacity: 0.6, y: 0, filter: 'blur(0px)' }}
+              initial={{ opacity: 0, transform: "translateY(10px)", filter: 'blur(10px)' }}
+              animate={{ opacity: 0.6, transform: "translateY(0px)", filter: 'blur(0px)' }}
               transition={{ duration: 1.2, delay: 1.2, ease: 'easeOut' }}
               className="text-white text-2xl mt-8 italic tracking-wider font-light"
             >

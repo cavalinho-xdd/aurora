@@ -3,6 +3,7 @@ import { XSquare, Shield } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { playPhaseChange, playTimerEnd } from '../utils/soundService';
+import FocusScratchpad from './FocusScratchpad';
 
 function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 25, pomodoroBreak = 5, onComplete, onAbort, onPhaseChange }) {
   const { t } = useTranslation();
@@ -14,6 +15,7 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
   const [phase, setPhase] = useState('FOCUS');
   const [phaseTimeLeft, setPhaseTimeLeft] = useState(usePomodoro ? Math.min(POMODORO_FOCUS_SEC, minutes * 60) : minutes * 60);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [scratchpadText, setScratchpadText] = useState('');
 
   useEffect(() => {
     if (Notification.permission !== "granted" && Notification.permission !== "denied") {
@@ -32,7 +34,11 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
               body: t('timerScreen.focusCompleteBody', 'Time to evaluate your knowledge.'),
             });
           }
-          onComplete();
+          // Use the latest scratchpad text
+          setScratchpadText(currentText => {
+            onComplete(currentText);
+            return currentText;
+          });
           return 0;
         }
         return prev - 1;
@@ -99,10 +105,16 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
       {/* Timer Circle — minimal, no card */}
       <motion.div 
         className="relative w-[280px] h-[280px] flex items-center justify-center"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
+        initial={{ opacity: 0, transform: "scale(0.85)" }}
+        animate={{ opacity: 1, transform: "scale(1)" }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
       >
+        {/* Breathing pulse — subtle scale animation during focus */}
+        <motion.div
+          className="absolute inset-0"
+          animate={{ scale: [1, 1.02, 1] }}
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+        >
         <svg width="280" height="280" viewBox="0 0 280 280" className="-rotate-90">
           <circle cx="140" cy="140" r="120" fill="transparent" stroke="rgba(255,255,255,0.03)" strokeWidth="2" />
           <circle 
@@ -113,7 +125,7 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            className="transition-all duration-1000 ease-linear"
+            className="transition-[stroke-dashoffset] duration-1000 ease-linear"
           />
           <defs>
             <linearGradient id="timer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -122,6 +134,7 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
             </linearGradient>
           </defs>
         </svg>
+        </motion.div>
         
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           {usePomodoro && (
@@ -129,7 +142,7 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
               {phase === 'FOCUS' ? t('timerScreen.phaseFocus') : t('timerScreen.phaseBreak')}
             </span>
           )}
-          <div className="text-7xl font-black tracking-tight text-white leading-none" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <div className="text-7xl font-black tracking-tight text-white leading-none font-mono" style={{ fontVariantNumeric: 'tabular-nums' }}>
             {m}:{s}
           </div>
           {usePomodoro && (
@@ -137,9 +150,15 @@ function TimerScreen({ minutes, topic, isHardcore, usePomodoro, pomodoroFocus = 
           )}
         </div>
       </motion.div>
+      
+      {/* Scratchpad */}
+      <FocusScratchpad 
+        value={scratchpadText} 
+        onChange={setScratchpadText} 
+      />
 
-      {/* Controls */}
-      <div className="mt-14 flex flex-col items-center gap-4">
+      {/* Controls (Abort) */}
+      <div className="mt-8 flex flex-col items-center gap-4">
         {isHardcore && (
           <div className="flex items-center gap-2 text-red-400/60 text-xs tracking-[0.2em] uppercase">
             <Shield size={14} /> Hardcore Active

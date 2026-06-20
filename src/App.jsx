@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 /**
  * @file App.jsx
  * @description Core Application State Machine.
@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
  * and synchronizes local Electron storage with the remote Firebase Firestore database.
  * Also handles offline fallbacks and "No API" modes for graceful degradation.
  */
-import { Settings as SettingsIcon, Trophy, LogOut, LayoutDashboard, AlertCircle, WifiOff, ListTodo } from 'lucide-react';
+import { Settings as SettingsIcon, Trophy, LogOut, LayoutDashboard, AlertCircle, WifiOff, ListTodo, PanelLeftClose, PanelLeft } from 'lucide-react';
 import { auth, db } from './firebase';
 import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
 import { doc, getDoc, updateDoc, setDoc, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
@@ -26,6 +26,33 @@ import DevPanel from './components/DevPanel';
 import UpdateNotification from './components/UpdateNotification';
 import { useTranslation } from 'react-i18next';
 
+/* ─── Toast Notification ─── */
+function Toast({ message, type = 'info', onDismiss }) {
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 3500);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  const colorMap = {
+    success: 'bg-emerald-500/15 border-emerald-500/25 text-emerald-300',
+    error: 'bg-red-500/15 border-red-500/25 text-red-300',
+    info: 'bg-focus-primary/15 border-focus-primary/25 text-focus-primary',
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+      className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-toast)] px-5 py-3 rounded-xl border backdrop-blur-md text-sm font-medium cursor-pointer ${colorMap[type]}`}
+      onClick={onDismiss}
+    >
+      {message}
+    </motion.div>
+  );
+}
+
 function App() {
   const { t, i18n } = useTranslation();
   const [currentUser, setCurrentUser] = useState(null);
@@ -33,6 +60,7 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [needsNickname, setNeedsNickname] = useState(false);
   const [tempNickname, setTempNickname] = useState('');
+  const [nicknameError, setNicknameError] = useState('');
 
   const [phase, setPhase] = useState('IDLE');
   const [userData, setUserData] = useState(null);
@@ -43,7 +71,18 @@ function App() {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [isDev, setIsDev] = useState(false);
   const [showDevPanel, setShowDevPanel] = useState(false);
+  const [quizError, setQuizError] = useState(null);
+  const [sessionScratchpad, setSessionScratchpad] = useState('');
+
+  // i18n listener [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  /* Toast state */
+  const [toast, setToast] = useState(null);
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ message, type, key: Date.now() });
+  }, []);
 
   useEffect(() => {
     const handleOnline = () => setIsOffline(false);
@@ -127,11 +166,12 @@ function App() {
 
   const handleSaveNickname = async () => {
     if (!tempNickname.trim()) return;
+    setNicknameError('');
     try {
       const q = query(collection(db, "users"), where("displayNameLower", "==", tempNickname.trim().toLowerCase()));
       const snap = await getDocs(q);
       if (!snap.empty) {
-        alert(t('socialScreen.nameTaken', 'Tato přezdívka je už zabraná. Vyberte si prosím jinou.'));
+        setNicknameError(t('socialScreen.nameTaken', 'This nickname is already taken. Please choose another one.'));
         return;
       }
 
@@ -153,7 +193,7 @@ function App() {
       });
     } catch(e) {
       console.error(e);
-      alert("Error saving nickname. Try again.");
+      setNicknameError(t('errors.auth.default', 'Something went wrong. Try again.'));
     }
   };
 
@@ -174,24 +214,32 @@ function App() {
     }
 
     if (window.api && window.api.gemini && userData.settings.apiKey) {
+      setQuizError(null);
       window.api.gemini.generate(goal.topic, userData.settings.apiKey, i18n.language, goal.filePath)
         .then(res => {
           if (res && res.questions) setQuizData(res.questions);
-          else setQuizData(null);
+          else {
+            setQuizData(null);
+            if (res && res.error) setQuizError(res.error);
+          }
         })
         .catch(err => {
           console.error("AI Fallback triggered: generation failed", err);
           setQuizData(null);
+          setQuizError(err.message || 'Unknown generation error');
         });
     } else {
       setQuizData(null);
+      setQuizError(null);
     }
   };
 
-  const handleFocusComplete = async () => {
+  const handleFocusComplete = async (scratchpadText = '') => {
     if (window.api && window.api.blocker) window.api.blocker.stop();
     
-    if (!userData.settings.apiKey || !quizData || quizData.length === 0) {
+    setSessionScratchpad(scratchpadText);
+
+    if (!userData.settings.apiKey) {
       handleQuizSubmit(2, null, true);
     } else {
       setPhase('QUIZ');
@@ -265,7 +313,8 @@ function App() {
             topic: currentGoal.topic,
             minutes: currentGoal.minutes,
             xpGained: xpGained,
-            date: new Date().toISOString()
+            date: new Date().toISOString(),
+            notes: sessionScratchpad
           });
         } catch (err) {
           console.error("Failed to save session history:", err);
@@ -343,9 +392,9 @@ function App() {
             initial={{ opacity: 0, y: -50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
-            className="fixed top-0 left-0 right-0 z-[100] flex justify-center pt-4 pointer-events-none"
+            className="fixed top-0 left-0 right-0 z-[var(--z-toast)] flex justify-center pt-4 pointer-events-none"
           >
-            <div className="bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-200 px-6 py-2.5 rounded-full shadow-glow-red flex items-center gap-3 text-sm font-medium pointer-events-auto">
+            <div className="bg-red-500/10 backdrop-blur-md border border-red-500/20 text-red-200 px-6 py-2.5 rounded-full flex items-center gap-3 text-sm font-medium pointer-events-auto">
               <WifiOff size={16} className="text-red-400" />
               <span>{t('errors.system.offlineTitle')} — {t('errors.system.offlineDesc')}</span>
             </div>
@@ -354,7 +403,7 @@ function App() {
       </AnimatePresence>
 
       {authLoading && (
-        <div className="h-screen w-screen flex items-center justify-center text-gray-500 relative z-10">
+        <div className="h-screen w-screen flex items-center justify-center text-gray-500 relative z-[var(--z-content)]">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 rounded-full border-2 border-focus-primary border-t-transparent animate-spin" />
             <span className="text-sm tracking-widest uppercase">{t('app.verifying')}</span>
@@ -363,15 +412,15 @@ function App() {
       )}
 
       {!authLoading && !currentUser && (
-        <div className="h-screen w-screen flex items-center justify-center relative z-10">
+        <div className="h-screen w-screen flex items-center justify-center relative z-[var(--z-content)]">
           <AuthScreen />
         </div>
       )}
 
       {!authLoading && currentUser && !currentUser.emailVerified && (
-        <div className="h-screen w-screen flex flex-col items-center justify-center relative z-10 text-white">
-          <div className="max-w-md w-full bg-[#0B0A15]/95 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center mx-4">
-            <div className="w-16 h-16 rounded-full bg-focus-primary/20 flex items-center justify-center mb-6 text-focus-primary shadow-glow-primary-sm">
+        <div className="h-screen w-screen flex flex-col items-center justify-center relative z-[var(--z-content)] text-white">
+          <div className="max-w-md w-full glass-surface-elevated rounded-3xl p-8 backdrop-blur-xl flex flex-col items-center text-center mx-4">
+            <div className="w-16 h-16 rounded-full bg-focus-primary/20 flex items-center justify-center mb-6 text-focus-primary">
               <AlertCircle size={32} />
             </div>
             <h2 className="text-2xl font-bold tracking-tight mb-3">{t('authScreen.verifyEmailTitle')}</h2>
@@ -384,12 +433,13 @@ function App() {
                   try {
                     const { sendEmailVerification } = await import('firebase/auth');
                     await sendEmailVerification(auth.currentUser);
-                    alert(t('authScreen.emailResent'));
+                    showToast(t('authScreen.emailResent', 'Verification email sent.'), 'success');
                   } catch(e) {
                     console.error(e);
+                    showToast(t('errors.auth.default', 'Something went wrong.'), 'error');
                   }
                 }}
-                className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-colors shadow-glow-primary active:scale-95 duration-150 ease-ui-out"
+                className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-primary/80 text-white font-bold transition-colors active:scale-95 duration-150 ease-ui-out"
               >
                 {t('authScreen.resendEmail')}
               </button>
@@ -399,7 +449,7 @@ function App() {
                   if (auth.currentUser.emailVerified) {
                     window.location.reload();
                   } else {
-                    alert("Stále neověřeno. Zkuste to znovu za pár vteřin.");
+                    showToast(t('authScreen.notVerifiedYet', 'Not verified yet. Try again in a few seconds.'), 'info');
                   }
                 }}
                 className="w-full py-4 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-medium transition-colors border border-white/5 active:scale-95 duration-150 ease-ui-out"
@@ -410,7 +460,7 @@ function App() {
                 onClick={() => signOut(auth)}
                 className="w-full mt-4 py-3 text-sm text-gray-500 hover:text-white transition-colors"
               >
-                {t('app.logout', 'Odhlásit se')}
+                {t('app.logout', 'Sign out')}
               </button>
             </div>
           </div>
@@ -418,19 +468,24 @@ function App() {
       )}
 
       {!authLoading && currentUser && currentUser.emailVerified && needsNickname && (
-        <div className="h-screen w-screen flex flex-col items-center justify-center relative z-10 text-white">
-          <div className="max-w-md w-full bg-[#0B0A15]/95 border border-white/10 rounded-3xl p-8 backdrop-blur-xl shadow-2xl flex flex-col items-center text-center mx-4">
-             <h2 className="text-2xl font-bold tracking-tight mb-3">Welcome to Aurora!</h2>
+        <div className="h-screen w-screen flex flex-col items-center justify-center relative z-[var(--z-content)] text-white">
+          <div className="max-w-md w-full glass-surface-elevated rounded-3xl p-8 backdrop-blur-xl flex flex-col items-center text-center mx-4">
+             <h2 className="text-2xl font-bold tracking-tight mb-3">Welcome to Aurora</h2>
              <p className="text-gray-400 font-light mb-8 leading-relaxed">
-               Please choose a nickname to appear on the leaderboards.
+               {t('authScreen.chooseNickname', 'Choose a nickname to appear on the leaderboards.')}
              </p>
+             {nicknameError && (
+               <div className="text-red-400 text-sm mb-4 flex items-start gap-2">
+                 <AlertCircle size={14} className="shrink-0 mt-0.5" /> {nicknameError}
+               </div>
+             )}
              <input 
                value={tempNickname} 
                onChange={e => setTempNickname(e.target.value)} 
                placeholder="Nickname" 
-               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors mb-4"
+               className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors mb-4"
              />
-             <button onClick={handleSaveNickname} className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-colors shadow-glow-primary active:scale-95 duration-150 ease-ui-out">
+             <button onClick={handleSaveNickname} className="w-full py-4 rounded-xl bg-focus-primary hover:bg-focus-primary/80 text-white font-bold transition-colors active:scale-95 duration-150 ease-ui-out">
                Start focusing
              </button>
           </div>
@@ -438,7 +493,7 @@ function App() {
       )}
 
       {!authLoading && currentUser && currentUser.emailVerified && !needsNickname && !userData && (
-        <div className="h-screen w-screen flex items-center justify-center text-gray-500 relative z-10">
+        <div className="h-screen w-screen flex items-center justify-center text-gray-500 relative z-[var(--z-content)]">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 rounded-full border-2 border-focus-primary border-t-transparent animate-spin" />
             <span className="text-sm tracking-widest uppercase">{t('app.loadingProfile')}</span>
@@ -447,19 +502,34 @@ function App() {
       )}
 
       {!authLoading && currentUser && currentUser.emailVerified && !needsNickname && userData && (
-        <div className="flex h-screen w-screen overflow-hidden text-white bg-transparent relative z-10">
+        <div className="flex h-screen w-screen overflow-hidden text-white bg-transparent relative z-[var(--z-content)]">
           {userData.error && (
-            <div className="absolute top-4 right-4 z-50 bg-red-500/10 text-red-300 p-3 rounded-full border border-red-500/20 text-sm backdrop-blur-md">
+            <div className="absolute top-4 right-4 z-[var(--z-toast)] bg-red-500/10 text-red-300 p-3 rounded-xl border border-red-500/20 text-sm">
               {t('app.dbError', { error: userData.error })}
             </div>
           )}
 
-          {/* Sidebar — ultra minimal, semi-transparent */}
-          <div className="w-56 bg-black/20 backdrop-blur-2xl flex flex-col py-8 px-4 z-20 border-r border-white/5">
+          {/* Sidebar — ultra minimal, collapsible */}
+          <motion.div 
+            className="bg-black/20 backdrop-blur-2xl flex flex-col py-8 px-4 z-[var(--z-sidebar)] border-r border-white/5"
+            animate={{ width: sidebarCollapsed ? 64 : 224 }}
+            transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+          >
             {/* Logo */}
-            <div className="flex items-center gap-3 mb-12 px-3">
-              <div className="w-3 h-3 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-glow-primary-sm"></div>
-              <span className="text-xl font-bold tracking-tight text-white">aurora</span>
+            <div className={`flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} mb-12`}>
+              <div className="w-3 h-3 rounded-full bg-focus-primary shrink-0"></div>
+              <AnimatePresence>
+                {!sidebarCollapsed && (
+                  <motion.span 
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    className="text-xl font-bold tracking-tight text-white overflow-hidden whitespace-nowrap"
+                  >
+                    aurora
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Nav Items */}
@@ -474,48 +544,95 @@ function App() {
                 return (
                   <button 
                     key={item.id}
-                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 ease-ui-out text-sm font-medium w-full text-left active:scale-[0.98] ${
+                    className={`flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-lg transition-colors duration-150 ease-ui-out text-sm font-medium w-full text-left active:scale-[0.98] ${
                       isActive 
                         ? 'text-white bg-white/10' 
                         : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'
                     }`} 
                     onClick={() => setPhase(item.id)}
+                    title={sidebarCollapsed ? item.label : undefined}
                   >
-                    <item.icon size={18} />
-                    {item.label}
-                    {isActive && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-focus-primary shadow-glow-primary-sm" />}
+                    <item.icon size={18} className="shrink-0" />
+                    <AnimatePresence>
+                      {!sidebarCollapsed && (
+                        <motion.span
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          className="overflow-hidden whitespace-nowrap"
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    {isActive && !sidebarCollapsed && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-focus-primary shrink-0" />}
                   </button>
                 );
               })}
             </div>
 
-            {/* Bottom: Level + Logout */}
+            {/* Bottom: Level + Collapse + Logout */}
             <div className="border-t border-white/5 pt-4 mt-4">
               {/* XP Mini Progress */}
-              <div className="px-3 mb-1">
-                <div className="flex justify-between text-xs mb-1.5">
-                  <span className="text-gray-500">{t('app.level')} <span className="text-white font-bold">{userData.stats.level}</span></span>
-                  <span className="text-gray-600">{userData.stats.xp}/{userData.stats.level * 100} XP</span>
+              {!sidebarCollapsed && (
+                <div className="px-3 mb-1">
+                  <div className="flex justify-between text-xs mb-1.5">
+                    <span className="text-gray-500">{t('app.level')} <span className="text-white font-bold">{userData.stats.level}</span></span>
+                    <span className="text-gray-600 font-mono">{userData.stats.xp}/{userData.stats.level * 100}</span>
+                  </div>
+                  <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-focus-primary transition-[width] duration-500 ease-out rounded-full"
+                      style={{ width: `${(userData.stats.xp / (userData.stats.level * 100)) * 100}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-focus-primary to-focus-secondary transition-all duration-500 ease-out"
-                    style={{ width: `${(userData.stats.xp / (userData.stats.level * 100)) * 100}%` }}
-                  />
-                </div>
-              </div>
+              )}
+
+              {/* Collapse toggle */}
+              <button 
+                className={`flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-lg transition-colors duration-150 ease-ui-out text-sm font-medium text-gray-500 hover:text-gray-300 hover:bg-white/5 w-full text-left active:scale-[0.98]`}
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              >
+                {sidebarCollapsed ? <PanelLeft size={18} className="shrink-0" /> : <PanelLeftClose size={18} className="shrink-0" />}
+                <AnimatePresence>
+                  {!sidebarCollapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="overflow-hidden whitespace-nowrap"
+                    >
+                      {t('app.collapse', 'Collapse')}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </button>
 
               <button 
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150 ease-ui-out text-sm font-medium text-gray-500 hover:text-gray-300 hover:bg-white/5 w-full text-left mt-2 active:scale-[0.98]" 
+                className={`flex items-center ${sidebarCollapsed ? 'justify-center px-0' : 'gap-3 px-3'} py-2.5 rounded-lg transition-colors duration-150 ease-ui-out text-sm font-medium text-gray-500 hover:text-gray-300 hover:bg-white/5 w-full text-left mt-1 active:scale-[0.98]`} 
                 onClick={() => signOut(auth)}
+                title={sidebarCollapsed ? t('app.logout') : undefined}
               >
-                <LogOut size={18} /> {t('app.logout')}
+                <LogOut size={18} className="shrink-0" />
+                <AnimatePresence>
+                  {!sidebarCollapsed && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="overflow-hidden whitespace-nowrap"
+                    >
+                      {t('app.logout')}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
             </div>
-          </div>
+          </motion.div>
 
           {/* Main Content — open, breathing, no glass cards wrapping content */}
-          <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative z-10">
+          <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden relative z-[var(--z-content)]">
             <div className="max-w-5xl w-full mx-auto flex flex-col flex-1 px-12 py-10">
               <AnimatePresence mode="wait">
                 {phase === 'IDLE' && (
@@ -597,7 +714,10 @@ function App() {
                   >
                     <QuizScreen 
                       quizData={quizData} 
+                      quizError={quizError}
                       apiKey={userData.settings.apiKey}
+                      persona={userData.settings.aiPersona || 'encouraging'}
+                      scratchpadText={sessionScratchpad}
                       onSubmit={handleQuizSubmit} 
                     />
                   </motion.div>
@@ -637,6 +757,18 @@ function App() {
 
       {/* Auto-updater Notification Overlay */}
       <UpdateNotification />
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <Toast 
+            key={toast.key}
+            message={toast.message} 
+            type={toast.type} 
+            onDismiss={() => setToast(null)} 
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

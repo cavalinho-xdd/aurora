@@ -16,12 +16,12 @@ function FlameSVG({ streak }) {
   
   return (
     <motion.div
-      initial={{ scale: 0, opacity: 0, y: 20 }}
-      animate={{ scale: config.scale, opacity: 1, y: config.yOffset }}
+      initial={{ opacity: 0, transform: "scale(0.85) translateY(20px)" }}
+      animate={{ opacity: 1, transform: `scale(${config.scale}) translateY(${config.yOffset}px)` }}
       transition={{ duration: 0.8, type: 'spring', bounce: 0.4, delay: 0.1 }}
       className="relative flex items-center justify-center w-40 h-40 origin-bottom"
     >
-      <svg width="100%" height="100%" viewBox="0 0 100 100" className="drop-shadow-glow-primary overflow-visible">
+      <svg width="100%" height="100%" viewBox="0 0 100 100" className="overflow-visible">
         <defs>
           <linearGradient id="flameOuter" x1="0%" y1="100%" x2="0%" y2="0%">
             <stop offset="0%" stopColor="#8B5CF6" />
@@ -185,8 +185,8 @@ function StreakCelebration({ streak, onComplete, noApiUsed }) {
             style={{ 
               boxShadow: `0 0 20px rgba(139, 92, 246, ${config.intensity * 0.2})`,
             }}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, transform: "scale(0.85)" }}
+            animate={{ opacity: 1, transform: "scale(1)" }}
             transition={{ delay: 1.0, duration: 0.5, type: 'spring' }}
           >
             {config.label}

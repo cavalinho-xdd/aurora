@@ -111,7 +111,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 placeholder={t('goalPlanner.topicPlaceholder')} 
                 value={topic}
                 onChange={(e) => { setTopic(e.target.value); if (topicError) setTopicError(false); }}
-                className={`w-full glass-card border ${topicError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-5 py-4 text-white text-lg placeholder-gray-500 focus:outline-none transition-colors duration-150 ease-ui-out shadow-inner pr-12`}
+                className={`w-full glass-surface ${topicError ? 'border-red-500 focus:border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-5 py-4 text-white text-lg placeholder-gray-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors duration-150 ease-ui-out pr-12`}
               />
               <button
                 type="button"
@@ -125,10 +125,10 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
             <AnimatePresence>
               {topicError && (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }} 
-                  animate={{ opacity: 1, y: 0, scale: 1 }} 
-                  exit={{ opacity: 0, scale: 0.95 }} 
-                  className="absolute -top-12 left-0 bg-[#EF4444] text-white px-4 py-2 rounded-lg text-sm font-medium shadow-glow-red-sm flex items-center gap-2 z-10"
+                  initial={{ opacity: 0, transform: "scale(0.95) translateY(10px)" }} 
+                  animate={{ opacity: 1, transform: "scale(1) translateY(0px)" }} 
+                  exit={{ opacity: 0, transform: "scale(0.95) translateY(0px)" }} 
+                  className="absolute -top-12 left-0 bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 z-[var(--z-tooltip)]"
                 >
                   <AlertTriangle size={14} /> {t('goalPlanner.requiredField')}
                   {/* Tooltip triangle */}
@@ -170,7 +170,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 key={preset}
                 type="button"
                 onClick={() => setMinutes(preset)}
-                className={`px-5 py-2.5 rounded-full text-sm font-medium transition-colors duration-150 ease-ui-out active:scale-95 ${
+                className={`px-5 py-2.5 rounded-full text-sm font-medium transition duration-150 ease-ui-out active:scale-95 ${
                   minutes === preset 
                     ? 'bg-white/15 text-white border border-white/20' 
                     : 'bg-white/5 text-gray-400 border border-transparent hover:bg-white/10 hover:text-gray-300'
@@ -187,7 +187,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               onChange={(e) => setMinutes(parseInt(e.target.value) || '')}
               placeholder="min"
               required
-              className="w-20 glass-card border border-white/10 rounded-full px-4 py-2.5 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors duration-150 ease-ui-out placeholder-gray-600"
+              className="w-20 glass-surface rounded-full px-4 py-2.5 text-white text-sm text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors duration-150 ease-ui-out placeholder-gray-600 font-mono"
             />
           </div>
         </div>
@@ -195,7 +195,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
         {/* Options row — premium glass cards with toggles */}
         <div className="flex flex-col sm:flex-row gap-4">
           <div 
-            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-colors duration-150 ease-ui-out active:scale-[0.98] ${usePomodoro ? 'glow-border' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
+            className={`flex-1 glass-surface p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-colors duration-150 ease-ui-out active:scale-[0.98] ${usePomodoro ? 'glow-border' : 'hover:border-white/10 hover:bg-white/[0.06]'}`} 
             onClick={() => setUsePomodoro(!usePomodoro)}
           >
             <div className="flex items-center gap-4">
@@ -211,7 +211,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
           </div>
 
           <div 
-            className={`flex-1 glass-card p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-colors duration-150 ease-ui-out active:scale-[0.98] ${isHardcore ? 'border border-red-500/50 shadow-glow-red-sm bg-red-500/5' : 'border border-white/5 hover:border-white/10 hover:bg-white/5'}`} 
+            className={`flex-1 glass-surface p-4 rounded-2xl flex items-center justify-between cursor-pointer transition-colors duration-150 ease-ui-out active:scale-[0.98] ${isHardcore ? 'border-red-500/40 bg-red-500/5' : 'hover:border-white/10 hover:bg-white/[0.06]'}`} 
             onClick={() => setIsHardcore(!isHardcore)}
           >
             <div className="flex items-center gap-4">
@@ -243,7 +243,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <input 
                   type="number" min="1" max="120" 
                   value={pomodoroFocus} onChange={e => setPomodoroFocus(parseInt(e.target.value) || 1)}
-                  className="w-24 glass-card border border-white/10 rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus:border-focus-primary/50 transition-colors duration-150 ease-ui-out"
+                  className="w-24 glass-surface rounded-xl px-4 py-3 text-white text-sm text-center focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors duration-150 ease-ui-out font-mono"
                 />
               </div>
               <div>
@@ -266,7 +266,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
             type="submit" 
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full text-lg shadow-glow-primary hover:shadow-glow-primary-lg transition duration-150 ease-ui-out active:scale-95 flex items-center gap-3"
+            className="bg-focus-primary text-white font-bold py-4 px-10 rounded-full text-lg shadow-glow-cta hover:shadow-glow-cta-hover transition duration-200 ease-ui-out active:scale-95 flex items-center gap-3"
           >
             <Play size={20} fill="currentColor" /> {t('goalPlanner.startFocus')}
           </motion.button>
@@ -283,10 +283,10 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, transform: "scale(0.95) translateY(20px)" }} animate={{ opacity: 1, transform: "scale(1) translateY(0px)" }} exit={{ opacity: 0, transform: "scale(0.95) translateY(20px)" }}
               className="relative bg-[#0B0A15]/95 border border-red-500/20 rounded-3xl p-8 max-w-md w-full shadow-2xl backdrop-blur-xl flex flex-col items-center"
             >
-              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 text-red-500 mx-auto shadow-glow-red-sm">
+              <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-6 text-red-500 mx-auto">
                 <AlertTriangle size={32} />
               </div>
               <h3 className="text-2xl font-bold text-center mb-3 text-red-400">{t('goalPlanner.hardcoreWarningTitle')}</h3>
@@ -304,7 +304,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <button 
                   type="button"
                   onClick={confirmHardcore}
-                  className="flex-1 py-3 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm shadow-glow-red"
+                  className="flex-1 py-3 px-4 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm"
                 >
                   {t('goalPlanner.hardcoreAccept')}
                 </button>
@@ -320,10 +320,10 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              initial={{ opacity: 0, transform: "scale(0.95) translateY(20px)" }} animate={{ opacity: 1, transform: "scale(1) translateY(0px)" }} exit={{ opacity: 0, transform: "scale(0.95) translateY(20px)" }}
               className="relative bg-[#0B0A15]/95 border border-orange-500/20 rounded-3xl p-8 max-w-md w-full shadow-2xl backdrop-blur-xl flex flex-col items-center"
             >
-              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mb-6 text-orange-400 mx-auto shadow-glow-orange-sm">
+              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mb-6 text-orange-400 mx-auto">
                 <AlertTriangle size={32} />
               </div>
               <h3 className="text-2xl font-bold text-center mb-3 text-white">{t('goalPlanner.noApiTitle')}</h3>
@@ -341,7 +341,7 @@ function GoalPlanner({ onStart, apiKeyMissing }) {
                 <button 
                   type="button"
                   onClick={confirmNoApi}
-                  className="flex-1 py-3 px-4 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm shadow-glow-orange"
+                  className="flex-1 py-3 px-4 rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm"
                 >
                   {t('goalPlanner.continueWithoutApi')}
                 </button>

@@ -73,7 +73,7 @@ function DevPanel({ onClose, onTriggerStreak }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onTriggerStreak(streakValue)}
-                className="bg-focus-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5 shadow-glow-primary-sm"
+                className="bg-focus-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5"
               >
                 <Play size={14} fill="currentColor" /> Fire
               </motion.button>

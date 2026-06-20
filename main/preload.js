@@ -7,7 +7,11 @@ contextBridge.exposeInMainWorld('api', {
   },
   gemini: {
     generate: (topic, apiKey, lang) => ipcRenderer.invoke('gemini:generate', { topic, apiKey, lang }),
-    evaluate: (qaPairs, apiKey, lang) => ipcRenderer.invoke('gemini:evaluate', { qaPairs, apiKey, lang })
+    evaluate: (qaPairs, apiKey, lang, persona, scratchpadText) => ipcRenderer.invoke('gemini:evaluate', { qaPairs, apiKey, lang, persona, scratchpadText }),
+    onStream: (callback) => {
+      ipcRenderer.removeAllListeners('gemini:stream');
+      ipcRenderer.on('gemini:stream', (event, chunk) => callback(chunk));
+    }
   },
   storage: {
     load: () => ipcRenderer.invoke('storage:load'),

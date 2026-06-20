@@ -92,7 +92,7 @@ function FocusBacklog({ onStartFocus }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 bg-focus-primary text-white px-5 py-2.5 rounded-full font-medium shadow-glow-primary hover:shadow-glow-primary-lg transition duration-150 ease-ui-out active:scale-95"
+          className="flex items-center gap-2 bg-focus-primary text-white px-5 py-2.5 rounded-full font-medium shadow-glow-cta hover:shadow-glow-cta-hover transition duration-150 ease-ui-out active:scale-95"
         >
           <Plus size={18} />
           {t('backlog.addTask')}
@@ -115,12 +115,13 @@ function FocusBacklog({ onStartFocus }) {
             </motion.div>
           )}
 
-          {tasks.map((task) => (
+          {tasks.map((task, index) => (
             <motion.div
               layout
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -20, scale: 0.95 }}
+              initial={{ opacity: 0, transform: "scale(0.98) translateY(10px)" }}
+              animate={{ opacity: 1, transform: "scale(1) translateY(0px)" }}
+              exit={{ opacity: 0, transform: "scale(0.95) translateX(-20px)" }}
+              transition={{ delay: index * 0.05 }}
               whileHover={{ scale: 1.01 }}
               key={task.id}
               className="group relative flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/10 hover:border-focus-primary/30 hover:bg-white/10 transition-colors duration-150 ease-ui-out active:scale-[0.98] cursor-pointer overflow-hidden shadow-lg"
@@ -171,7 +172,7 @@ function FocusBacklog({ onStartFocus }) {
       {createPortal(
         <AnimatePresence>
           {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -180,9 +181,9 @@ function FocusBacklog({ onStartFocus }) {
                 onClick={() => setShowModal(false)}
               />
               <motion.div
-                initial={{ scale: 0.95, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.95, y: 20 }}
+                initial={{ transform: "scale(0.95) translateY(20px)" }}
+                animate={{ transform: "scale(1) translateY(0px)" }}
+                exit={{ transform: "scale(0.95) translateY(20px)" }}
                 className="relative w-full max-w-md bg-[#131122] border border-white/10 rounded-3xl p-8 shadow-2xl"
               >
                 <div className="flex justify-between items-center mb-6">
@@ -199,7 +200,7 @@ function FocusBacklog({ onStartFocus }) {
                     type="text"
                     value={newTaskTitle}
                     onChange={(e) => setNewTaskTitle(e.target.value)}
-                    className="w-full bg-black/20 border border-white/10 focus:border-focus-primary rounded-xl px-4 py-3 text-white focus:outline-none transition-colors"
+                    className="w-full bg-black/20 border border-white/10 focus:border-focus-primary rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors"
                     placeholder="e.g. Write Essay"
                     required
                   />
@@ -213,7 +214,7 @@ function FocusBacklog({ onStartFocus }) {
                     max="180"
                     value={newTaskMinutes}
                     onChange={(e) => setNewTaskMinutes(e.target.value)}
-                    className="w-full bg-black/20 border border-white/10 focus:border-focus-primary rounded-xl px-4 py-3 text-white focus:outline-none transition-colors"
+                    className="w-full bg-black/20 border border-white/10 focus:border-focus-primary rounded-xl px-4 py-3 text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors"
                     required
                   />
                 </div>
@@ -250,7 +251,7 @@ function FocusBacklog({ onStartFocus }) {
                   <button
                     type="submit"
                     disabled={!newTaskTitle.trim() || isSubmitting}
-                    className="flex-1 py-3.5 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition duration-150 ease-ui-out active:scale-95 shadow-glow-primary-sm disabled:opacity-50 disabled:shadow-none"
+                    className="flex-1 py-3.5 rounded-xl bg-focus-primary hover:bg-focus-primary/80 text-white font-bold transition duration-150 ease-ui-out active:scale-95 disabled:opacity-50"
                   >
                     {t('backlog.save')}
                   </button>

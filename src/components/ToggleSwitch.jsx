@@ -7,7 +7,7 @@ export default function ToggleSwitch({ checked, onChange, disabled = false }) {
       type="button"
       onClick={() => !disabled && onChange(!checked)}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-ui-out focus:outline-none ${
-        checked ? 'bg-focus-primary shadow-glow-primary-sm' : 'bg-white/10'
+        checked ? 'bg-focus-primary' : 'bg-white/10'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-white/20'}`}
     >
       <motion.span

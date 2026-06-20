@@ -145,7 +145,7 @@ function AuthScreen() {
     >
       {/* Branding */}
       <div className="flex items-center gap-3 mb-12">
-        <div className="w-4 h-4 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary shadow-glow-primary-sm" />
+        <div className="w-4 h-4 rounded-full bg-focus-primary" />
         <span className="text-2xl font-bold tracking-tight">aurora</span>
       </div>
 
@@ -178,12 +178,12 @@ function AuthScreen() {
                 type="text" value={displayName} 
                 onChange={(e) => { setDisplayName(e.target.value); setFieldErrors(prev => ({...prev, displayName: false})) }} 
                 placeholder="Procrastinator123" 
-                className={`w-full bg-white/5 border ${fieldErrors.displayName ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
+                className={`w-full bg-white/5 border ${fieldErrors.displayName ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors`}
               />
               {fieldErrors.displayName && (
-                <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10">
+                <div className="absolute -top-10 left-0 bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 z-[var(--z-tooltip)]">
                   <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
-                  <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
+                  <div className="absolute -bottom-1 left-4 w-2 h-2 bg-red-500 rotate-45" />
                 </div>
               )}
             </div>
@@ -196,12 +196,12 @@ function AuthScreen() {
               type="email" value={email} 
               onChange={(e) => { setEmail(e.target.value); setFieldErrors(prev => ({...prev, email: false})) }} 
               placeholder="aurora@example.com" 
-              className={`w-full bg-white/5 border ${fieldErrors.email ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
+              className={`w-full bg-white/5 border ${fieldErrors.email ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors`}
             />
             {fieldErrors.email && (
-              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10">
+              <div className="absolute -top-10 left-0 bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 z-[var(--z-tooltip)]">
                 <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
-                <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
+                <div className="absolute -bottom-1 left-4 w-2 h-2 bg-red-500 rotate-45" />
               </div>
             )}
           </div>
@@ -213,12 +213,12 @@ function AuthScreen() {
               type="password" value={password} 
               onChange={(e) => { setPassword(e.target.value); setFieldErrors(prev => ({...prev, password: false})) }} 
               placeholder="••••••••" minLength="6" 
-              className={`w-full bg-white/5 border ${fieldErrors.password ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none transition-colors`}
+              className={`w-full bg-white/5 border ${fieldErrors.password ? 'border-red-500' : 'border-white/10 focus:border-focus-primary/50'} rounded-xl px-4 py-3.5 text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors`}
             />
             {fieldErrors.password && (
-              <div className="absolute -top-10 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10">
+              <div className="absolute -top-10 left-0 bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 z-[var(--z-tooltip)]">
                 <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
-                <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
+                <div className="absolute -bottom-1 left-4 w-2 h-2 bg-red-500 rotate-45" />
               </div>
             )}
           </div>
@@ -244,7 +244,7 @@ function AuthScreen() {
           className={`mt-4 text-white font-bold py-4 px-6 rounded-full transition-colors duration-150 ease-ui-out active:scale-95 flex justify-center items-center gap-2 ${
             isOffline 
               ? 'bg-gray-600 cursor-not-allowed opacity-50' 
-              : 'bg-focus-primary shadow-glow-primary hover:shadow-glow-primary-lg disabled:opacity-50 disabled:hover:shadow-none'
+              : 'bg-focus-primary shadow-glow-cta hover:shadow-glow-cta-hover disabled:opacity-50 disabled:hover:shadow-none'
           }`}
         >
           {isOffline ? <WifiOff size={18} /> : (isRegister ? <UserPlus size={18} /> : <LogIn size={18} />)}

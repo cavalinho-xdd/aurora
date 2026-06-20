@@ -7,8 +7,46 @@ import React, { useState, useEffect } from 'react';
  */
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { Flame, Clock } from 'lucide-react';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
+
+/** Animated counter that counts up from 0 to target */
+function CountUp({ target, duration = 1.2, delay = 0.4 }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (target <= 0) return;
+    const startTime = Date.now();
+    const delayMs = delay * 1000;
+    
+    const animate = () => {
+      const elapsed = Date.now() - startTime - delayMs;
+      if (elapsed < 0) {
+        requestAnimationFrame(animate);
+        return;
+      }
+      const progress = Math.min(elapsed / (duration * 1000), 1);
+      // Ease out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    
+    const frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [target, duration, delay]);
+
+  return count;
+}
+
+function formatFocusTime(minutes) {
+  if (!minutes) return "0m";
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
 
 function Dashboard({ stats, userName, userId }) {
   const { t } = useTranslation();
@@ -29,6 +67,7 @@ function Dashboard({ stats, userName, userId }) {
     };
     fetchHistory();
   }, [userId]);
+
   const progressPercent = (stats.xp / (stats.level * 100)) * 100;
 
   const hour = new Date().getHours();
@@ -41,21 +80,21 @@ function Dashboard({ stats, userName, userId }) {
 
   return (
     <div>
-      {/* Hero greeting — like the web's big headings */}
+      {/* Hero greeting — clean, no gradient text */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
         <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight mb-2">
-          {greeting}, <span className="text-gradient">{displayName}</span>.
+          {greeting}, <span className="text-focus-primary">{displayName}</span>.
         </h1>
-        <p className="text-lg text-gray-500 font-light">
+        <p className="text-lg text-gray-400 font-light">
           {t('dashboard.subtitle', 'Here\'s your progress so far.')}
         </p>
       </motion.div>
 
-      {/* Stats row — flat, no card wrapper, just content breathing on the dark bg */}
+      {/* Stats row — flat, typographic hierarchy, no card wrappers */}
       <motion.div 
         className="flex items-end gap-16 mt-12 pb-12 border-b border-white/5"
         initial={{ opacity: 0, y: 20 }}
@@ -64,22 +103,21 @@ function Dashboard({ stats, userName, userId }) {
       >
         {/* Level */}
         <div>
-          <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-2">{t('dashboard.level')}</p>
-          <div className="text-6xl font-black text-white leading-none tracking-tighter">
-            {stats.level}
+          <p className="text-xs text-gray-500 font-medium mb-2">{t('dashboard.level')}</p>
+          <div className="text-6xl font-black text-white leading-none tracking-tighter font-mono">
+            <CountUp target={stats.level} duration={0.8} delay={0.3} />
           </div>
         </div>
 
         {/* Streak */}
         {stats.streak > 0 && (
           <div>
-            <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-2">{t('dashboard.streak')}</p>
+            <p className="text-xs text-gray-500 font-medium mb-2">{t('dashboard.streak')}</p>
             <div className="flex items-end gap-2">
-              <div className="text-5xl font-bold text-white leading-none tracking-tighter">{stats.streak}</div>
-              <svg width="24" height="28" viewBox="0 0 120 130" className="mb-1 opacity-80">
-                <path d="M60,125 C85,125 105,100 105,70 C105,35 65,-5 65,-5 C65,-5 75,30 55,50 C45,60 30,65 25,85 C20,105 40,125 60,125 Z" fill="#8B5CF6" opacity="0.9" />
-                <path d="M60,120 C80,120 95,98 95,72 C95,45 65,10 65,10 C65,10 72,38 55,55 C48,62 35,68 32,85 C28,102 45,120 60,120 Z" fill="#EC4899" opacity="0.5" />
-              </svg>
+              <div className="text-5xl font-bold text-white leading-none tracking-tighter font-mono">
+                <CountUp target={stats.streak} duration={0.8} delay={0.4} />
+              </div>
+              <Flame size={22} className="mb-1 text-focus-primary opacity-80" />
             </div>
           </div>
         )}
@@ -87,12 +125,12 @@ function Dashboard({ stats, userName, userId }) {
         {/* XP Progress */}
         <div className="flex-1">
           <div className="flex justify-between items-end mb-3">
-            <span className="text-xs text-gray-500 uppercase tracking-[0.2em]">{t('dashboard.xp')}</span>
-            <span className="text-sm text-gray-400 font-medium">{stats.xp} / {stats.level * 100}</span>
+            <span className="text-xs text-gray-500 font-medium">{t('dashboard.xp')}</span>
+            <span className="text-sm text-gray-400 font-medium font-mono">{stats.xp} / {stats.level * 100}</span>
           </div>
           <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
             <motion.div 
-              className="h-full bg-gradient-to-r from-focus-primary to-focus-secondary"
+              className="h-full bg-focus-primary rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 1, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -102,33 +140,64 @@ function Dashboard({ stats, userName, userId }) {
 
         {/* Goals Completed */}
         <div className="text-right">
-          <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-2">{t('dashboard.completedGoals')}</p>
-          <div className="text-5xl font-bold text-white leading-none tracking-tighter">{stats.goalsCompleted}</div>
+          <p className="text-xs text-gray-500 font-medium mb-2">{t('dashboard.completedGoals')}</p>
+          <div className="text-5xl font-bold text-white leading-none tracking-tighter font-mono">
+            <CountUp target={stats.goalsCompleted} duration={1} delay={0.5} />
+          </div>
+        </div>
+
+        {/* Total Focus Time */}
+        <div className="text-right">
+          <p className="text-xs text-gray-500 font-medium mb-2">{t('dashboard.totalFocusTime', 'Focus time')}</p>
+          <div className="flex items-end gap-2 justify-end">
+            <Clock size={16} className="mb-1 text-gray-500" />
+            <div className="text-2xl font-bold text-gray-300 leading-none tracking-tight font-mono">
+              {formatFocusTime(stats.totalFocusMinutes)}
+            </div>
+          </div>
         </div>
       </motion.div>
 
       {/* History */}
-      {history.length > 0 && (
+      {history.length > 0 ? (
         <motion.div 
           className="mt-12"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
-          <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-6">{t('dashboard.recentSessions', 'Recent Sessions')}</p>
+          <p className="text-xs text-gray-500 uppercase tracking-[0.2em] mb-6">{t('dashboard.recentSessions', 'Recent sessions')}</p>
           <div className="flex flex-col gap-3">
-            {history.map((session) => (
-              <div key={session.id} className="flex justify-between items-center bg-white/5 border border-white/5 rounded-xl px-5 py-4 backdrop-blur-md hover:bg-white/10 transition-colors">
+            {history.map((session, i) => (
+              <motion.div 
+                key={session.id} 
+                className="flex justify-between items-center glass-surface rounded-xl px-5 py-4 hover:bg-white/[0.06] transition-colors duration-150"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.25 + i * 0.05, ease: [0.22, 1, 0.36, 1] }}
+              >
                 <div>
                   <h4 className="text-white font-medium">{session.topic || 'General Focus'}</h4>
-                  <p className="text-xs text-gray-400 mt-1">{new Date(session.date).toLocaleDateString()} • {session.minutes} {t('dashboard.minutes', 'min')}</p>
+                  <p className="text-xs text-gray-500 mt-1 font-mono">{new Date(session.date).toLocaleDateString()} · {session.minutes} {t('dashboard.minutes', 'min')}</p>
                 </div>
-                <div className="text-focus-primary font-bold">
+                <div className="text-focus-primary font-bold font-mono">
                   +{session.xpGained} XP
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
+        </motion.div>
+      ) : (
+        <motion.div 
+          className="mt-12 flex flex-col items-center justify-center py-16 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-4">
+            <Clock size={20} className="text-gray-600" />
+          </div>
+          <p className="text-gray-500 text-sm">{t('dashboard.noHistory', 'No sessions yet. Start your first focus to track progress.')}</p>
         </motion.div>
       )}
     </div>

@@ -97,7 +97,7 @@ export default function UpdateNotification() {
             <div className="flex gap-2 mt-2">
               <button 
                 onClick={handleInstall}
-                className="flex-1 py-2.5 rounded-xl bg-focus-primary hover:bg-focus-secondary text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm shadow-glow-primary-sm"
+                className="flex-1 py-2.5 rounded-xl bg-focus-primary hover:bg-focus-primary/80 text-white font-bold transition-colors duration-150 ease-ui-out active:scale-95 text-sm"
               >
                 {t('updater.installNow', 'Restartovat')}
               </button>

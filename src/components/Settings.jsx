@@ -14,6 +14,7 @@ import ToggleSwitch from './ToggleSwitch';
 function Settings({ settings, onSave }) {
   const { t, i18n } = useTranslation();
   const [apiKey, setApiKey] = useState(settings.apiKey || '');
+  const [aiPersona, setAiPersona] = useState(settings.aiPersona || 'encouraging');
   const [blacklistRaw, setBlacklistRaw] = useState((settings.blacklist || []).join('\n'));
   const [blockedWebsitesRaw, setBlockedWebsitesRaw] = useState((settings.blockedWebsites || []).join('\n'));
   const [lowGraphicsMode, setLowGraphicsMode] = useState(settings.lowGraphicsMode || false);
@@ -66,7 +67,7 @@ function Settings({ settings, onSave }) {
   const handleSave = () => {
     const list = blacklistRaw.split('\n').map(s => s.trim()).filter(Boolean);
     const websitesList = blockedWebsitesRaw.split('\n').map(s => s.trim()).filter(Boolean);
-    onSave({ apiKey, blacklist: list, blockedWebsites: websitesList, lowGraphicsMode });
+    onSave({ apiKey, blacklist: list, blockedWebsites: websitesList, lowGraphicsMode, aiPersona });
     
     // UI-UX Pro Max: Inline reassurance
     setIsSaved(true);
@@ -146,9 +147,38 @@ function Settings({ settings, onSave }) {
           value={apiKey} 
           onChange={(e) => setApiKey(e.target.value)} 
           placeholder="AIzaSy..." 
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors"
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-3.5 text-white placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors"
         />
         <p className="text-xs text-gray-600 mt-2">{t('settings.keyDisclaimer')}</p>
+      </motion.div>
+
+      {/* AI Persona */}
+      <motion.div 
+        className="mb-8 pb-8 border-b border-white/5"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <label className="flex items-center gap-2 mb-3 text-sm text-gray-500 font-medium tracking-wide">
+          <Activity size={16} /> AI Persona
+        </label>
+        <div className="flex gap-4">
+          {['encouraging', 'hardcore', 'operator'].map(persona => (
+            <button
+              key={persona}
+              type="button"
+              onClick={() => setAiPersona(persona)}
+              className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-colors border ${
+                aiPersona === persona 
+                  ? 'bg-focus-primary/20 border-focus-primary text-white' 
+                  : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
+              }`}
+            >
+              {persona.charAt(0).toUpperCase() + persona.slice(1)}
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-gray-600 mt-3">Choose the AI's personality for evaluation feedback.</p>
       </motion.div>
 
       {/* Blacklist */}
@@ -162,7 +192,7 @@ function Settings({ settings, onSave }) {
           <Shield size={16} /> {t('settings.blacklistLabel')}
         </label>
         <textarea 
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors resize-none min-h-[160px]"
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors resize-none min-h-[160px]"
           value={blacklistRaw}
           onChange={(e) => setBlacklistRaw(e.target.value)}
           placeholder={`steam\ndiscord\nspotify`}
@@ -191,7 +221,7 @@ function Settings({ settings, onSave }) {
           <Globe size={16} /> {t('settings.blockedWebsitesLabel', 'Blocked Websites (Chrome Extension)')}
         </label>
         <textarea 
-          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus:border-focus-primary/50 transition-colors resize-none min-h-[160px]"
+          className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-mono text-sm placeholder-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors resize-none min-h-[160px]"
           value={blockedWebsitesRaw}
           onChange={(e) => setBlockedWebsitesRaw(e.target.value)}
           placeholder={`youtube.com\ntiktok.com\ninstagram.com`}
@@ -226,18 +256,18 @@ function Settings({ settings, onSave }) {
         <button 
           type="button"
           onClick={handleSave}
-          className={`w-full text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 ease-ui-out active:scale-95 flex items-center justify-center gap-2 ${
+          className={`w-full text-white font-bold py-4 px-8 rounded-xl transition duration-150 ease-ui-out active:scale-95 flex items-center justify-center gap-2 ${
             isSaved 
-              ? 'bg-emerald-500 shadow-lg shadow-emerald-500/40 pointer-events-none' 
-              : 'bg-focus-primary hover:bg-focus-secondary shadow-glow-primary hover:shadow-glow-secondary-lg'
+              ? 'bg-emerald-500 pointer-events-none' 
+              : 'bg-focus-primary hover:bg-focus-primary/80 shadow-glow-cta hover:shadow-glow-cta-hover'
           }`}
         >
           {isSaved ? (
             <AnimatePresence mode="wait">
               <motion.div 
                 key="saved"
-                initial={{ scale: 0.5, opacity: 0 }} 
-                animate={{ scale: 1, opacity: 1 }} 
+                initial={{ opacity: 0, transform: "scale(0.85)" }} 
+                animate={{ opacity: 1, transform: "scale(1)" }} 
                 className="flex items-center gap-2"
               >
                 <CheckCircle2 size={18} /> {t('settings.saved', 'Uloženo!')}
@@ -278,12 +308,12 @@ function Settings({ settings, onSave }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] flex justify-center items-center p-4"
+              className="fixed inset-0 bg-black/60 backdrop-blur-md z-[var(--z-modal)] flex justify-center items-center p-4"
             >
               <motion.div
-                initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                initial={{ opacity: 0, transform: "scale(0.95) translateY(20px)" }}
+                animate={{ opacity: 1, transform: "scale(1) translateY(0px)" }}
+                exit={{ opacity: 0, transform: "scale(0.95) translateY(20px)" }}
                 transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
                 className="bg-[#0B0A15]/95 border border-white/10 rounded-3xl p-6 w-full max-w-lg flex flex-col max-h-[85vh] shadow-2xl"
               >
@@ -301,7 +331,7 @@ function Settings({ settings, onSave }) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder={i18n.language === 'cs' ? 'Hledat aplikaci...' : 'Search apps...'}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-focus-primary/50 transition-colors"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-focus-primary/50 transition-colors"
                   />
                 </div>
                 
@@ -318,7 +348,7 @@ function Settings({ settings, onSave }) {
                     </label>
                   ))}
                   {scannedProcesses.filter(p => p.toLowerCase().includes(searchQuery.toLowerCase())).length === 0 && (
-                    <p className="text-gray-600 text-center py-8 text-sm">Nic nenalezeno.</p>
+                    <p className="text-gray-600 text-center py-8 text-sm">{t('settings.noResults', 'Nothing found.')}</p>
                   )}
                 </div>
 

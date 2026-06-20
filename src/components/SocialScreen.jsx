@@ -161,7 +161,7 @@ function SocialScreen() {
               <div className={`flex items-center gap-2 font-medium ${user.id === auth.currentUser.uid ? 'text-white' : 'text-gray-400'}`}>
                 <span>{user.displayName || t('socialScreen.anonymous')}</span>
                 {(user.role === 'dev' || user.role === 'admin') && (
-                  <div className="flex items-center gap-1 text-[10px] uppercase font-black tracking-wider text-white bg-gradient-to-r from-focus-primary to-focus-secondary px-2 py-0.5 rounded-md shadow-glow-primary-sm" title="Aurora Developer">
+                  <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider text-focus-primary bg-focus-primary/15 px-2 py-0.5 rounded-md" title="Aurora Developer">
                     <BadgeCheck size={12} /> DEV
                   </div>
                 )}
@@ -172,15 +172,12 @@ function SocialScreen() {
 
             {user.streak > 0 && (
               <div className="flex items-center gap-1.5 opacity-80" title={`${user.streak} day streak`}>
-                <svg width="14" height="16" viewBox="0 0 100 100" className="drop-shadow-md">
-                  <path d="M50 10 C50 10 20 45 20 70 A30 30 0 0 0 80 70 C80 45 50 10 50 10 Z" fill="#8B5CF6" />
-                  <path d="M50 35 C50 35 35 55 35 70 A15 15 0 0 0 65 70 C65 55 50 35 50 35 Z" fill="#F472B6" />
-                </svg>
-                <span className="text-white font-bold text-xs">{user.streak}</span>
+                <Flame size={14} className="text-focus-primary" />
+                <span className="text-white font-bold text-xs font-mono">{user.streak}</span>
               </div>
             )}
-              <span className="text-white font-bold text-sm">{t('app.level')} {user.level}</span>
-              <span className="text-focus-primary text-xs font-medium w-16 text-right">{user.xp} XP</span>
+              <span className="text-white font-bold text-sm font-mono">{t('app.level')} {user.level}</span>
+              <span className="text-focus-primary text-xs font-medium w-16 text-right font-mono">{user.xp} XP</span>
             </div>
           </div>
         </div>
@@ -283,7 +280,7 @@ function SocialScreen() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }} 
                       animate={{ opacity: 1, y: 0, scale: 1 }} 
                       exit={{ opacity: 0, scale: 0.95 }} 
-                      className="absolute -top-12 left-0 bg-[#EF4444] text-white px-3 py-1.5 rounded-lg text-xs font-medium shadow-glow-red-sm flex items-center gap-1.5 z-10 whitespace-nowrap"
+                      className="absolute -top-12 left-0 bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 z-[var(--z-tooltip)] whitespace-nowrap"
                     >
                       <AlertCircle size={12} /> {t('goalPlanner.requiredField')}
                       <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#EF4444] rotate-45" />
@@ -321,7 +318,7 @@ function SocialScreen() {
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-focus-primary text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-glow-primary" 
+                  className="bg-focus-primary text-white px-5 py-2 rounded-full text-sm font-bold flex items-center gap-2" 
                   onClick={() => handleAddFriend(searchResult.id)}
                 >
                   <Plus size={14} /> {t('socialScreen.add')}
@@ -340,7 +337,7 @@ function SocialScreen() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
             onClick={() => setSelectedUser(null)}
           >
             <motion.div
@@ -358,7 +355,7 @@ function SocialScreen() {
               </button>
 
               <div className="flex flex-col items-center mt-4">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary flex items-center justify-center shadow-glow-primary mb-4">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-focus-primary to-focus-secondary flex items-center justify-center mb-4">
                   <span className="text-3xl font-black text-white">
                     {(selectedUser.displayName || 'A').charAt(0).toUpperCase()}
                   </span>
@@ -366,7 +363,7 @@ function SocialScreen() {
                 <h3 className="text-2xl font-black text-white flex items-center gap-3">
                   {selectedUser.displayName || t('socialScreen.anonymous')}
                   {(selectedUser.role === 'dev' || selectedUser.role === 'admin') && (
-                    <div className="flex items-center gap-1 text-xs uppercase font-black tracking-wider text-white bg-gradient-to-r from-focus-primary to-focus-secondary px-2.5 py-1 rounded-lg shadow-glow-primary-sm" title="Aurora Developer">
+                    <div className="flex items-center gap-1 text-xs uppercase font-bold tracking-wider text-focus-primary bg-focus-primary/15 px-2.5 py-1 rounded-lg" title="Aurora Developer">
                       <BadgeCheck size={14} /> DEV
                     </div>
                   )}
@@ -376,25 +373,25 @@ function SocialScreen() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4 mt-8">
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                  <Trophy size={20} className="text-focus-primary mb-2 opacity-80" />
-                  <span className="text-2xl font-bold text-white leading-none mb-1">{selectedUser.level}</span>
+              {/* Stats — flat inline bar, no cards */}
+              <div className="flex items-center justify-center gap-8 mt-8 pt-6 border-t border-white/5">
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-bold text-white leading-none mb-1 font-mono">{selectedUser.level}</span>
                   <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('dashboard.level')}</span>
                 </div>
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                  <Target size={20} className="text-focus-secondary mb-2 opacity-80" />
-                  <span className="text-2xl font-bold text-white leading-none mb-1">{selectedUser.goalsCompleted || 0}</span>
+                <div className="w-px h-8 bg-white/10" />
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-bold text-white leading-none mb-1 font-mono">{selectedUser.goalsCompleted || 0}</span>
                   <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('socialScreen.goals')}</span>
                 </div>
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                  <Flame size={20} className="text-focus-primary mb-2 opacity-80" />
-                  <span className="text-2xl font-bold text-white leading-none mb-1">{selectedUser.streak || 0}</span>
+                <div className="w-px h-8 bg-white/10" />
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-bold text-white leading-none mb-1 font-mono">{selectedUser.streak || 0}</span>
                   <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('socialScreen.streak')}</span>
                 </div>
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex flex-col items-center justify-center text-center">
-                  <Clock size={20} className="text-focus-secondary mb-2 opacity-80" />
-                  <span className="text-2xl font-bold text-white leading-none mb-1">{formatTime(selectedUser.totalFocusMinutes)}</span>
+                <div className="w-px h-8 bg-white/10" />
+                <div className="flex flex-col items-center">
+                  <span className="text-2xl font-bold text-white leading-none mb-1 font-mono">{formatTime(selectedUser.totalFocusMinutes)}</span>
                   <span className="text-[10px] text-gray-500 uppercase tracking-widest">{t('socialScreen.focusTime')}</span>
                 </div>
               </div>
