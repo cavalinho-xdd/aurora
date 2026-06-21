@@ -40,6 +40,15 @@ jobs:
         run: npm install
 
       - name: Build Vite App
+        env:
+          VITE_FIREBASE_API_KEY: AIzaSyAtGuJ10S0dzXgD0BCXI8EQOSpS63OXnvQ
+          VITE_FIREBASE_AUTH_DOMAIN: stay-aurora.firebaseapp.com
+          VITE_FIREBASE_PROJECT_ID: stay-aurora
+          VITE_FIREBASE_STORAGE_BUCKET: stay-aurora.firebasestorage.app
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "135860160624"
+          VITE_FIREBASE_APP_ID: "1:135860160624:web:e378cac1bdc2c99299ccb5"
+          VITE_FIREBASE_MEASUREMENT_ID: G-0QEHSFY5S2
+          VITE_WEB_APP_URL: https://stayaurora.dev
         run: npm run build
 
       - name: Build and Publish Electron App
